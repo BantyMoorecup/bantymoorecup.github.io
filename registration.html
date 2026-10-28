@@ -1,11 +1,51 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Team Registration | Banty Moore Prestige Cup</title><link rel="stylesheet" href="styles.css"></head><body><header><div class="wrap"><div class="brand"><img src="banty-moore-logo.jpg" alt="Banty Moore logo"><div class="brand-copy"><h1>Team Registration</h1><p>Banty Moore Prestige Cup</p><small>Official player registration</small></div></div><nav><a href="index.html">Home</a></nav></div></header><main><section class="panel"><h2>Register your team’s players</h2><p>Use the unique link supplied to your team manager. A maximum of six players can be registered per team. Submissions are pending until approved by the tournament admin.</p><p><b>Deadline:</b> Thursday, 5 November 2026, 7:00 PM Nigeria time.</p>
-<div class="panel" role="note" aria-label="Payment and registration notice">
-  <h2>Payment &amp; Registration Notice</h2>
-  <p>A registration fee of <b>₦1,000 per player</b> is required.</p>
-  <p><b>Bank:</b> OPay<br>
-     <b>Account name:</b> Faruk Daramola<br>
-     <b>Account number:</b> 8089698843</p>
-  <p>After completing registration, the team coach must send a private message to the tournament admin with proof of payment to request approval.</p>
-  <p><b>Please note:</b> Players will remain pending until payment is verified and their registration is approved by the admin.</p>
-</div><div id="notice" class="notice" hidden></div><form id="regForm"><label for="teamToken">Team registration token</label><input id="teamToken" required autocomplete="off" placeholder="Token from your team link"><div id="playerFields"></div><button class="button" type="button" id="addPlayer">Add another player</button><button class="button" type="submit">Submit registration</button></form><p class="muted">Do not share your team’s private registration link publicly.</p></section></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="supabase-client.js"></script><script src="shared.js"></script><script src="registration.js"></script></body></html>
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Team Manager | Banty Moore Prestige Cup</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
+        <div class="brand-copy">
+          <h1>Team Manager</h1>
+          <p>Banty Moore Prestige Cup</p>
+          <small>Official team roster</small>
+        </div>
+      </div>
+      <nav><a href="index.html">Home</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2 id="teamName">Loading team...</h2>
+      <p>View your registered players and their approval status.</p>
+      <div id="notice" class="notice" hidden></div>
+
+      <div id="roster">
+        <p>Loading roster...</p>
+      </div>
+
+      <button class="button" id="refreshRoster" type="button">
+        Refresh roster
+      </button>
+      <p class="muted">
+        Keep your team's private manager link secure.
+        Player approval is handled by the tournament admin.
+      </p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="shared.js"></script>
+  <script src="registration.js"></script>
+</body>
+</html>
