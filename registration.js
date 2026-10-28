@@ -1,4 +1,3 @@
-```javascript
 (function () {
   const teamName = document.getElementById("teamName");
   const roster = document.getElementById("roster");
