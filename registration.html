@@ -32,6 +32,25 @@
         <p>Loading roster...</p>
       </div>
 
+      
+<form id="playerRegistrationForm" class="panel">
+  <h3>Register Players</h3>
+  <p>Register up to 6 players for your team. Each player needs a full name and passport photograph.</p>
+
+  <div id="playerFields">
+    <div class="player-entry">
+      <label>Player 1 — Full name</label>
+      <input type="text" name="full_name" required maxlength="100" placeholder="Enter player's full name">
+
+      <label>Player 1 — Passport photograph</label>
+      <input type="file" name="passport_photo" accept="image/*" required>
+    </div>
+  </div>
+
+  <button class="button" type="button" id="addPlayer">Add another player</button>
+  <button class="button" type="submit">Submit registrations</button>
+</form>
+
       <button class="button" id="refreshRoster" type="button">
         Refresh roster
       </button>
