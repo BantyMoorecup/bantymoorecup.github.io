@@ -40,23 +40,30 @@ async function refresh(){
 
  const storedLinks=savedLinks();
 
- $("teamLinks").innerHTML=teams.map(t=>{
-  const item=storedLinks.find(x=>String(x.team_id)===String(t.id));
-  const linkInfo=item
-   ? `<br><input readonly value="${BANTY.esc(item.url)}" aria-label="Private registration link for ${BANTY.esc(t.name)}">
-      <button class="button" type="button" data-copy-link="${BANTY.esc(t.id)}">Select link</button>`
-   : `<p class="muted">No saved registration link in this browser.</p>`;
+ $("teamLinks").innerHTML = teams.map(t => {
+  const item = storedLinks.find(
+    x => String(x.team_id) === String(t.id)
+  );
 
-  return `<div class="panel">
-    <b>${BANTY.esc(t.name)}</b>
-    ${linkInfo}
-    <div class="row-actions">
+  return `
+    <div class="panel">
+      <b>${BANTY.esc(t.name)}</b>
+      ${
+        item
+          ? `<p>
+              <input readonly value="${BANTY.esc(item.url)}"
+                aria-label="Private registration link for ${BANTY.esc(t.name)}">
+              <button class="button" type="button"
+                data-copy-link="${BANTY.esc(t.id)}">Select link</button>
+            </p>`
+          : `<p class="muted">No saved link in this browser.</p>`
+      }
       <button class="button danger" type="button"
         data-delete-team="${BANTY.esc(t.id)}"
         data-team-name="${BANTY.esc(t.name)}">Delete Team</button>
     </div>
-  </div>`;
- }).join("")||"<p class=\"muted\">No teams yet.</p>";
+  `;
+}).join("") || "<p class=\"muted\">No teams yet.</p>";
 
  $("teamLinks").querySelectorAll("[data-copy-link]").forEach(b=>{
   b.onclick=()=>{
