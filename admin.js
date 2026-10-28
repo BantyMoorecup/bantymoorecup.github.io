@@ -37,26 +37,36 @@ async function refresh(){
  opts($("resultMatch"),matches,matchLabel);
  opts($("eventMatch"),matches,matchLabel);
  opts($("eventPlayer"),players.filter(p=>p.registration_status==="approved"),p=>`${p.full_name} — ${teams.find(t=>t.id===p.team_id)?.name||""}`);
+const { data: tokenRows, error: tokenError } = await client
+  .from("team_registration_tokens")
+  .select("team_id, token_value, active")
+  .eq("active", true);
 
- const storedLinks=savedLinks();
+if (tokenError) throw tokenError;
 
- $("teamLinks").innerHTML = teams.map(t => {
+const storedLinks = tokenRows || [];
+
+$("teamLinks").innerHTML = teams.map(t => {
   const item = storedLinks.find(
-    x => String(x.team_id) === String(t.id)
+    x => String(x.team_id) === String(t.id) && x.token_value
   );
+
+  const url = item
+    ? `${location.origin}${location.pathname.replace("admin.html", "registration.html")}?token=${encodeURIComponent(item.token_value)}`
+    : "";
 
   return `
     <div class="panel">
       <b>${BANTY.esc(t.name)}</b>
       ${
-        item
+        url
           ? `<p>
-              <input readonly value="${BANTY.esc(item.url)}"
+              <input readonly value="${BANTY.esc(url)}"
                 aria-label="Private registration link for ${BANTY.esc(t.name)}">
               <button class="button" type="button"
-                data-copy-link="${BANTY.esc(t.id)}">Select link</button>
+                data-copy-link="${BANTY.esc(t.id)}">Copy link</button>
             </p>`
-          : `<p class="muted">No saved link in this browser.</p>`
+          : `<p class="muted">No active manager link found.</p>`
       }
       <button class="button danger" type="button"
         data-delete-team="${BANTY.esc(t.id)}"
@@ -65,20 +75,33 @@ async function refresh(){
   `;
 }).join("") || "<p class=\"muted\">No teams yet.</p>";
 
- $("teamLinks").querySelectorAll("[data-copy-link]").forEach(b=>{
-  b.onclick=()=>{
-   const item=savedLinks().find(x=>String(x.team_id)===b.dataset.copyLink);
-   if(!item)return;
-   const input=b.parentElement.querySelector("input")||
-     b.closest(".panel").querySelector("input");
-   if(input){input.focus();input.select()}
+$("teamLinks").querySelectorAll("[data-copy-link]").forEach(b => {
+  b.onclick = async () => {
+    const item = storedLinks.find(
+      x => String(x.team_id) === b.dataset.copyLink && x.token_value
+    );
+
+    if (!item) return;
+
+    const url = `${location.origin}${location.pathname.replace("admin.html", "registration.html")}?token=${encodeURIComponent(item.token_value)}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      msg("Manager link copied. Send it only to the correct team manager.");
+    } catch {
+      const input = b.parentElement.querySelector("input");
+      if (input) {
+        input.focus();
+        input.select();
+        msg("Link selected. Press Ctrl+C to copy it.");
+      }
+    }
   };
- });
+});
 
- $("teamLinks").querySelectorAll("[data-delete-team]").forEach(b=>{
-  b.onclick=()=>deleteTeam(b.dataset.deleteTeam,b.dataset.teamName);
- });
-
+$("teamLinks").querySelectorAll("[data-delete-team]").forEach(b => {
+  b.onclick = () => deleteTeam(b.dataset.deleteTeam, b.dataset.teamName);
+});
  const pending=players.filter(p=>p.registration_status==="pending");
  $("pending").innerHTML=pending.map(p=>`
   <div class="panel">
@@ -179,7 +202,12 @@ $("teamForm").addEventListener("submit",async e=>{
   const token=crypto.randomUUID().replaceAll("-","");
   const {data,error}=await client.from("teams").insert({name}).select("id,name").single();
   if(error)throw error;
-  const {error:te}=await client.from("team_registration_tokens").insert({team_id:data.id,token_hash:await sha256(token),active:true});
+  const {error:te}=await client.from("team_registration_tokens").insert({
+  team_id: data.id,
+  token_hash: await sha256(token),
+  token_value: token,
+  active: true
+});
   if(te)throw te;
   const url=`${location.origin}${location.pathname.replace("admin.html","registration.html")}?token=${encodeURIComponent(token)}`;
   saveLink({team_id:data.id,name,url});
