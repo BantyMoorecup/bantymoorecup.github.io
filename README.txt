@@ -1,22 +1,21 @@
-# Banty Moore Prestige Cup — MVP starter
+BANTY MOORE PRESTIGE CUP — UPDATE PACKAGE
 
-## Included
-- `index.html`: branded homepage with registration countdown.
-- `registration.html`: player submission prototype.
-- `admin.html`: browser prototype for player approvals, goal/card entry, and team overview.
-- `supabase_schema.sql`: starting database schema for a future Supabase connection.
+IMPORTANT
+- Keep the currently published site online until these files are uploaded and tested.
+- This package is designed for the existing Supabase project:
+  https://thibnmsekeqvdsxlwffo.supabase.co
+- Before uploading, replace the placeholder in supabase-config.js with your Supabase publishable key.
+- Never put a Supabase service_role/secret key in website files.
+- Admin sign-in uses Supabase Auth. Only the user ID listed in public.admin_users can perform admin actions.
+- Registration deadline is set to 2026-11-05 19:00 Africa/Lagos in the database function.
+- Managers receive a team-specific URL containing a registration token. Anyone with that link can use it, so share each link privately.
 
-## Important
-This is a prototype, not a published website and not safe for live tournament use yet.
-The HTML prototype stores test data in the current browser's local storage. It does not sync between users or devices, and it has no real login/security.
-Do not enter sensitive personal information into the prototype.
+SETUP ORDER
+1. Run supabase_setup.sql in Supabase SQL Editor, one statement at a time if the editor rejects multi-statement SQL. Read comments.
+2. Create an admin user in Supabase Authentication using the admin email, then insert that user's UUID into public.admin_users.
+3. Add the real publishable key to supabase-config.js.
+4. Upload the files to the existing GitHub Pages repository root.
+5. Test with one sample team before sharing registration links.
 
-## Next production steps
-1. Create a Supabase project using your own account.
-2. Review the schema and apply it to the project's SQL editor.
-3. Configure authentication and row-level security policies before collecting real registrations.
-4. Add server-side deadline enforcement for Thursday, 5 November 2026 at 7:00 PM Nigeria time.
-5. Connect the pages to Supabase and deploy the site to a free host.
-6. Test admin/manager permissions using separate accounts before sharing the site publicly.
-
-Never put a Supabase service-role key in public browser code.
+NOTE
+The package includes working front-end pages and database functions, but the real deployment must be tested in your Supabase project before being used for the tournament.

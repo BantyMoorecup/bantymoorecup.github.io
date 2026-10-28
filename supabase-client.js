@@ -1,21 +1,12 @@
 (function () {
-  if (!window.supabase) {
-    console.error("Supabase library has not loaded.");
+  if (!window.supabase || !window.BANTY_SUPABASE_URL ||
+      !window.BANTY_SUPABASE_PUBLISHABLE_KEY ||
+      window.BANTY_SUPABASE_PUBLISHABLE_KEY === "PASTE_YOUR_PUBLISHABLE_KEY_HERE") {
+    console.error("Supabase is not configured. Check supabase-config.js.");
     return;
   }
-
-  if (
-    typeof SUPABASE_URL === "undefined" ||
-    typeof SUPABASE_PUBLISHABLE_KEY === "undefined"
-  ) {
-    console.error("Supabase configuration is missing.");
-    return;
-  }
-
   window.bantySupabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
+    window.BANTY_SUPABASE_URL,
+    window.BANTY_SUPABASE_PUBLISHABLE_KEY
   );
-
-  console.log("Banty Moore Supabase client initialized.");
 })();
