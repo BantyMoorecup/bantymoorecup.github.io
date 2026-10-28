@@ -1,4 +1,3 @@
-
 (function(){
 const $=id=>document.getElementById(id), notice=$("notice"), area=$("adminArea"), login=$("login"), logout=$("logout");
 let client, teams=[], players=[], matches=[];
