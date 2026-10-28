@@ -1,4 +1,4 @@
-
+```javascript
 (function () {
   const teamName = document.getElementById("teamName");
   const roster = document.getElementById("roster");
@@ -31,18 +31,50 @@
 
       const jersey = document.createElement("p");
       jersey.textContent = "Jersey number: " +
-        (player.jersey_number == null ? "Not provided" : player.jersey_number);
+        (player.jersey_number == null
+          ? "Not provided"
+          : player.jersey_number);
 
-      const status = document.createElement("p");
-      const value = String(player.registration_status || "pending").toLowerCase();
-      const labels = {
-        pending: "Pending approval",
-        approved: "Approved",
-        rejected: "Rejected"
+      const value = String(
+        player.registration_status || "pending"
+      ).toLowerCase();
+
+      const statuses = {
+        approved: {
+          label: "Verified",
+          symbol: "✓",
+          color: "#15803d",
+          background: "#dcfce7"
+        },
+        pending: {
+          label: "Pending",
+          symbol: "◷",
+          color: "#a16207",
+          background: "#fef3c7"
+        },
+        rejected: {
+          label: "Rejected",
+          symbol: "✕",
+          color: "#b91c1c",
+          background: "#fee2e2"
+        }
       };
 
-      status.textContent = "Registration status: " +
-        (labels[value] || "Pending approval");
+      const current = statuses[value] || statuses.pending;
+
+      const status = document.createElement("span");
+      status.textContent = current.symbol + " " + current.label;
+
+      Object.assign(status.style, {
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "7px 12px",
+        borderRadius: "999px",
+        fontWeight: "600",
+        fontSize: "14px",
+        color: current.color,
+        backgroundColor: current.background
+      });
 
       card.append(name, jersey, status);
       roster.appendChild(card);
@@ -86,3 +118,4 @@
   refreshButton.addEventListener("click", loadRoster);
   loadRoster();
 })();
+```
