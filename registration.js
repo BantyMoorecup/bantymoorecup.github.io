@@ -74,7 +74,11 @@
       player.id ||
       player.registration_id;
 
-    if (databaseId !== undefined && databaseId !== null && String(databaseId).trim()) {
+    if (
+      databaseId !== undefined &&
+      databaseId !== null &&
+      String(databaseId).trim()
+    ) {
       return String(databaseId);
     }
 
@@ -142,6 +146,26 @@
         createStatusBadge(player.registration_status)
       );
 
+      const photoUrl = getPhotoUrl(player);
+
+      if (photoUrl) {
+        const photo = document.createElement("img");
+        photo.src = photoUrl;
+        photo.alt = "Photo of " + (player.full_name || "player");
+        photo.style.width = "80px";
+        photo.style.height = "100px";
+        photo.style.objectFit = "cover";
+        photo.style.borderRadius = "8px";
+        photo.style.display = "block";
+        photo.style.marginBottom = "12px";
+
+        photo.addEventListener("error", function () {
+          photo.remove();
+        });
+
+        card.appendChild(photo);
+      }
+
       card.append(name, jersey, statusLine);
       roster.appendChild(card);
     });
@@ -161,25 +185,41 @@
       }
 
       const client = await BANTY.ready();
-      const result = await client.rpc(
-        "get_team_registration_status",
-        { p_token: token }
-      );
 
-      if (result.error) throw result.error;
+      // Fetch the roster and temporary photo URLs from the Edge Function.
+      const result = await client.functions.invoke("get-team-roster", {
+        body: { token: token }
+      });
+
+      if (result.error) {
+        let message =
+          result.error.message || "Unable to load the team roster.";
+
+        if (result.error.context instanceof Response) {
+          try {
+            const details = await result.error.context.json();
+            if (details.error) message = details.error;
+          } catch (_) {}
+        }
+
+        throw new Error(message);
+      }
 
       const data = result.data;
 
-      if (!data || !data.team_name) {
-        throw new Error("This team link is invalid or inactive.");
+      if (!data || !data.team_name || !Array.isArray(data.players)) {
+        throw new Error(
+          data?.error || "The roster response is incomplete."
+        );
       }
 
       currentTeamName = data.team_name;
       teamName.textContent = currentTeamName;
 
-      renderRoster(Array.isArray(data.players) ? data.players : []);
+      renderRoster(data.players);
     } catch (error) {
       console.error("Unable to load team roster:", error);
+
       currentTeamName = "";
       approvedPlayers = [];
       teamName.textContent = "Team roster unavailable";
@@ -215,12 +255,14 @@
     logo.alt = "Banty Moore logo";
 
     const headingWrap = document.createElement("div");
+
     appendTextElement(
       headingWrap,
       "div",
       "print-card-heading",
       "BANTY MOORE PRESTIGE CUP"
     );
+
     appendTextElement(
       headingWrap,
       "div",
@@ -330,7 +372,6 @@
 
     window.addEventListener("afterprint", cleanup);
 
-    // Give the browser time to load card photos before opening print preview.
     const images = Array.from(printCards.querySelectorAll("img"));
 
     Promise.all(
@@ -349,6 +390,7 @@
 
   function updatePlayerButtons() {
     addPlayerButton.disabled = playerCount >= 6;
+
     addPlayerButton.textContent =
       playerCount >= 6
         ? "Maximum of 6 players reached"
@@ -404,7 +446,8 @@
           if (heading) heading.textContent = "Player " + number;
 
           if (labels[0]) {
-            labels[0].textContent = "Player " + number + " — Full name";
+            labels[0].textContent =
+              "Player " + number + " — Full name";
           }
 
           if (labels[1]) {
@@ -456,6 +499,7 @@
       const nameInput = entries[i].querySelector(
         'input[name="full_name"]'
       );
+
       const photoInput = entries[i].querySelector(
         'input[name="passport_photo"]'
       );
@@ -485,6 +529,7 @@
     }
 
     const submitButton = form.querySelector('button[type="submit"]');
+
     submitButton.disabled = true;
     addPlayerButton.disabled = true;
     submitButton.textContent = "Submitting...";
