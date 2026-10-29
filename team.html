@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Team Profile | Banty Moore Prestige Cup</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <a href="index.html">
+        <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
+      </a>
+      <div class="brand-copy">
+        <h1>Banty Moore Prestige Cup</h1>
+        <p>Official tournament hub — fixtures, results, teams and player statistics.</p>
+        <small>Prestige • Passion • Football</small>
+      </div>
+    </div>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="index.html#matches">Fixtures</a>
+      <a href="index.html#league">League Table</a>
+      <a href="index.html#scorers">Top Scorers</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <p><a href="index.html">← Back to overview</a></p>
+
+  <section class="panel">
+    <p class="muted">TEAM PROFILE</p>
+    <h2 id="team-name">Loading team…</h2>
+    <p id="team-message" class="muted">Loading team information.</p>
+  </section>
+
+  <section class="panel">
+    <h2>League Statistics</h2>
+    <div id="team-stats" class="team-stats">
+      <p class="muted">Loading statistics…</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Fixtures &amp; Results</h2>
+    <div id="team-matches" class="table-wrap">Loading fixtures…</div>
+  </section>
+
+  <section class="panel">
+    <h2>Team Roster</h2>
+    <p class="muted">Only approved players are listed here.</p>
+    <div id="team-roster">Loading roster…</div>
+  </section>
+</main>
+
+<footer>Banty Moore Prestige Cup</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="shared.js"></script>
+<script src="team.js"></script>
+</body>
+</html>
