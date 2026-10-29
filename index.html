@@ -1,13 +1,112 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Banty Moore Prestige Cup</title><link rel="stylesheet" href="styles.css"></head>
-<body><header><div class="wrap"><div class="brand"><img src="banty-moore-logo.jpg" alt="Banty Moore logo"><div class="brand-copy"><h1>Banty Moore Prestige Cup</h1><p>Official tournament hub — fixtures, results, teams and player statistics.</p><small>Prestige • Passion • Football</small></div></div><nav><a href="registration.html">Team registration</a><a href="admin.html">Admin</a></nav></div></header>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Official Banty Moore Prestige Cup tournament hub.">
+  <title>Banty Moore Prestige Cup</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
+      <div class="brand-copy">
+        <h1>Banty Moore Prestige Cup</h1>
+        <p>Official tournament hub — fixtures, results, teams and player statistics.</p>
+        <small>Prestige • Passion • Football</small>
+      </div>
+    </div>
+    <nav aria-label="Main navigation">
+      <a href="#overview">Overview</a>
+      <a href="#matches-section">Fixtures</a>
+      <a href="#league-section">League Table</a>
+      <a href="#scorers-section">Top Scorers</a>
+      <a href="#teams-section">Teams</a>
+      <a href="registration.html">Team Registration</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </div>
+</header>
+
 <main>
-<div class="panel"><h2>Player registration</h2><p>Team registration closes <strong>Thursday, 5 November 2026 at 7:00 PM (Nigeria time)</strong>. Managers must use their own team registration link. Each team can register up to six players. Registrations are subject to admin approval.</p></div>
-<div class="grid">
-<section class="panel"><h2>League Table</h2><div id="league" class="table-wrap">Loading table…</div></section>
-<section class="panel"><h2>Top Scorers</h2><div id="scorers" class="table-wrap">Loading scorers…</div></section>
-<section class="panel"><h2>Cards Table</h2><div id="cards" class="table-wrap">Loading cards…</div></section>
-<section class="panel"><h2>Fixtures &amp; Results</h2><div id="matches" class="table-wrap">Loading fixtures…</div></section>
-<section class="panel"><h2>Teams &amp; Players</h2><div id="teams">Loading teams…</div></section>
-</div></main><footer>Banty Moore Prestige Cup</footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="supabase-client.js"></script><script src="shared.js"></script><script src="public.js"></script></body></html>
+  <section class="panel" id="overview">
+    <p class="pill">THE TOURNAMENT</p>
+    <h2>Banty Moore Prestige Cup 2026</h2>
+    <p>Prestige. Passion. Football. Follow the teams, fixtures, results and player statistics.</p>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Kick-off</h3>
+        <strong>6 November 2026</strong>
+      </div>
+      <div class="panel">
+        <h3>Venue</h3>
+        <strong>Awoseyin Street, Somolu, Lagos</strong>
+      </div>
+      <div class="panel">
+        <h3>First Prize</h3>
+        <strong>₦1,000,000</strong>
+      </div>
+      <div class="panel">
+        <h3>Second Prize</h3>
+        <strong>₦500,000</strong>
+      </div>
+    </div>
+
+    <p class="row-actions">
+      <a class="button" href="#matches-section">View Fixtures</a>
+      <a class="button" href="#teams-section">Explore Teams</a>
+      <a class="button" href="registration.html">Team Registration</a>
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Player Registration</h2>
+    <p>
+      Team registration closes
+      <strong>Thursday, 5 November 2026 at 7:00 PM Nigeria time.</strong>
+      Managers must use their own team registration link.
+      Each team can register up to six players.
+      Registrations are subject to admin approval.
+    </p>
+  </section>
+
+  <div class="grid">
+    <section class="panel" id="league-section">
+      <h2>League Table</h2>
+      <div id="league" class="table-wrap">Loading table…</div>
+    </section>
+
+    <section class="panel" id="scorers-section">
+      <h2>Top Scorers</h2>
+      <div id="scorers" class="table-wrap">Loading scorers…</div>
+    </section>
+
+    <section class="panel" id="cards-section">
+      <h2>Cards Table</h2>
+      <div id="cards" class="table-wrap">Loading cards…</div>
+    </section>
+
+    <section class="panel" id="matches-section">
+      <h2>Fixtures &amp; Results</h2>
+      <div id="matches" class="table-wrap">Loading fixtures…</div>
+    </section>
+
+    <section class="panel" id="teams-section">
+      <h2>Teams &amp; Players</h2>
+      <div id="teams">Loading teams…</div>
+    </section>
+  </div>
+</main>
+
+<footer>Banty Moore Prestige Cup • Prestige • Passion • Football</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="shared.js"></script>
+<script src="public.js"></script>
+</body>
+</html>
