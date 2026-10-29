@@ -9,11 +9,15 @@
   const form = document.getElementById("playerRegistrationForm");
   const playerFields = document.getElementById("playerFields");
   const addPlayerButton = document.getElementById("addPlayer");
+  const printButton = document.getElementById("printIdCards");
+  const printCards = document.getElementById("printCards");
 
   const token =
     new URLSearchParams(window.location.search).get("token") || "";
 
   let playerCount = 1;
+  let approvedPlayers = [];
+  let currentTeamName = "";
 
   function showNotice(message, isError) {
     notice.hidden = false;
@@ -60,8 +64,56 @@
     return badge;
   }
 
+  function isApproved(player) {
+    return String(player.registration_status || "").toLowerCase() === "approved";
+  }
+
+  function getPlayerId(player, index) {
+    const databaseId =
+      player.player_id ||
+      player.id ||
+      player.registration_id;
+
+    if (databaseId !== undefined && databaseId !== null && String(databaseId).trim()) {
+      return String(databaseId);
+    }
+
+    const teamSlug = currentTeamName
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "")
+      .slice(0, 10) || "TEAM";
+
+    return "BMPC-" + teamSlug + "-" + String(index + 1).padStart(3, "0");
+  }
+
+  function getPhotoUrl(player) {
+    return (
+      player.passport_photo_url ||
+      player.photo_url ||
+      player.signed_photo_url ||
+      player.passport_photo_signed_url ||
+      player.photo_signed_url ||
+      ""
+    );
+  }
+
+  function getInitials(name) {
+    return String(name || "Player")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(function (part) {
+        return part.charAt(0).toUpperCase();
+      })
+      .join("") || "P";
+  }
+
   function renderRoster(players) {
     roster.replaceChildren();
+
+    approvedPlayers = players.filter(isApproved);
+    printButton.disabled = approvedPlayers.length === 0;
 
     if (!players.length) {
       const empty = document.createElement("p");
@@ -97,9 +149,11 @@
 
   async function loadRoster() {
     refreshButton.disabled = true;
+    printButton.disabled = true;
     teamName.textContent = "Loading team...";
     roster.textContent = "Loading roster...";
     notice.hidden = true;
+    printCards.replaceChildren();
 
     try {
       if (!token) {
@@ -120,10 +174,14 @@
         throw new Error("This team link is invalid or inactive.");
       }
 
-      teamName.textContent = data.team_name;
+      currentTeamName = data.team_name;
+      teamName.textContent = currentTeamName;
+
       renderRoster(Array.isArray(data.players) ? data.players : []);
     } catch (error) {
       console.error("Unable to load team roster:", error);
+      currentTeamName = "";
+      approvedPlayers = [];
       teamName.textContent = "Team roster unavailable";
       roster.replaceChildren();
 
@@ -136,10 +194,165 @@
     }
   }
 
+  function appendTextElement(parent, tag, className, text) {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    parent.appendChild(element);
+    return element;
+  }
+
+  function createPrintCard(player, index) {
+    const card = document.createElement("article");
+    card.className = "print-id-card";
+
+    const header = document.createElement("div");
+    header.className = "print-card-header";
+
+    const logo = document.createElement("img");
+    logo.className = "print-card-logo";
+    logo.src = "banty-moore-logo.jpg";
+    logo.alt = "Banty Moore logo";
+
+    const headingWrap = document.createElement("div");
+    appendTextElement(
+      headingWrap,
+      "div",
+      "print-card-heading",
+      "BANTY MOORE PRESTIGE CUP"
+    );
+    appendTextElement(
+      headingWrap,
+      "div",
+      "print-card-subtitle",
+      "OFFICIAL PLAYER ID • 2026"
+    );
+
+    header.append(logo, headingWrap);
+
+    const body = document.createElement("div");
+    body.className = "print-card-body";
+
+    const photoUrl = getPhotoUrl(player);
+
+    if (photoUrl) {
+      const photo = document.createElement("img");
+      photo.className = "print-card-photo";
+      photo.src = photoUrl;
+      photo.alt = "Photo of " + (player.full_name || "player");
+      photo.referrerPolicy = "no-referrer";
+
+      photo.addEventListener("error", function () {
+        const placeholder = document.createElement("div");
+        placeholder.className = "print-card-placeholder";
+        placeholder.textContent = getInitials(player.full_name);
+        photo.replaceWith(placeholder);
+      });
+
+      body.appendChild(photo);
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "print-card-placeholder";
+      placeholder.textContent = getInitials(player.full_name);
+      body.appendChild(placeholder);
+    }
+
+    const details = document.createElement("div");
+    details.className = "print-card-details";
+
+    appendTextElement(
+      details,
+      "div",
+      "print-card-name",
+      player.full_name || "Unnamed player"
+    );
+
+    appendTextElement(
+      details,
+      "div",
+      "print-card-team",
+      "TEAM: " + currentTeamName
+    );
+
+    appendTextElement(
+      details,
+      "div",
+      "print-card-number",
+      "PLAYER ID: " + getPlayerId(player, index)
+    );
+
+    appendTextElement(
+      details,
+      "div",
+      "print-card-status",
+      "STATUS: APPROVED"
+    );
+
+    if (player.jersey_number !== undefined && player.jersey_number !== null) {
+      appendTextElement(
+        details,
+        "div",
+        "print-card-status",
+        "JERSEY: " + player.jersey_number
+      );
+    }
+
+    body.appendChild(details);
+
+    const footer = document.createElement("div");
+    footer.className = "print-card-footer";
+    footer.textContent = "PRESTIGE • PASSION • FOOTBALL";
+
+    card.append(header, body, footer);
+    return card;
+  }
+
+  function printApprovedCards() {
+    const latestApproved = approvedPlayers.filter(isApproved);
+
+    if (!latestApproved.length) {
+      showNotice("There are no approved players to print cards for.", true);
+      return;
+    }
+
+    printCards.replaceChildren();
+
+    latestApproved.forEach(function (player, index) {
+      printCards.appendChild(createPrintCard(player, index));
+    });
+
+    document.body.classList.add("id-printing");
+
+    const cleanup = function () {
+      document.body.classList.remove("id-printing");
+      window.removeEventListener("afterprint", cleanup);
+    };
+
+    window.addEventListener("afterprint", cleanup);
+
+    // Give the browser time to load card photos before opening print preview.
+    const images = Array.from(printCards.querySelectorAll("img"));
+
+    Promise.all(
+      images.map(function (image) {
+        if (image.complete) return Promise.resolve();
+
+        return new Promise(function (resolve) {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        });
+      })
+    ).then(function () {
+      window.print();
+    });
+  }
+
   function updatePlayerButtons() {
     addPlayerButton.disabled = playerCount >= 6;
     addPlayerButton.textContent =
-      playerCount >= 6 ? "Maximum of 6 players reached" : "Add another player";
+      playerCount >= 6
+        ? "Maximum of 6 players reached"
+        : "Add another player";
   }
 
   function addPlayerField() {
@@ -189,10 +402,15 @@
           const heading = item.querySelector("h4");
 
           if (heading) heading.textContent = "Player " + number;
-          if (labels[0]) labels[0].textContent =
-            "Player " + number + " — Full name";
-          if (labels[1]) labels[1].textContent =
-            "Player " + number + " — Passport photograph";
+
+          if (labels[0]) {
+            labels[0].textContent = "Player " + number + " — Full name";
+          }
+
+          if (labels[1]) {
+            labels[1].textContent =
+              "Player " + number + " — Passport photograph";
+          }
         });
 
       updatePlayerButtons();
@@ -212,6 +430,7 @@
   }
 
   addPlayerButton.addEventListener("click", addPlayerField);
+  printButton.addEventListener("click", printApprovedCards);
 
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -240,6 +459,7 @@
       const photoInput = entries[i].querySelector(
         'input[name="passport_photo"]'
       );
+
       const fullName = nameInput.value.trim();
       const photo = photoInput.files[0];
 
@@ -315,7 +535,6 @@
       );
 
       form.reset();
-
       playerFields.replaceChildren();
       playerCount = 0;
       addPlayerField();
