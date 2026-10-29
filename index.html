@@ -1,23 +1,127 @@
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Official Banty Moore Prestige Cup tournament hub.">
   <title>Banty Moore Prestige Cup</title>
   <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* Prize display */
+    .prize-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 24px 0 18px;
+    }
+
+    .prize-card {
+      padding: 26px 16px;
+      border-radius: 16px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-sizing: border-box;
+    }
+
+    .first-prize {
+      background: linear-gradient(135deg, #754000, #ffbd35);
+      color: #fff;
+    }
+
+    .second-prize {
+      background: linear-gradient(135deg, #34394a, #c4ccd8);
+      color: #171421;
+    }
+
+    .prize-label,
+    .prize-caption {
+      display: block;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+    }
+
+    .prize-label {
+      font-size: 0.85rem;
+    }
+
+    .prize-card strong {
+      display: block;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      margin: 14px 0;
+    }
+
+    .prize-caption {
+      font-size: 0.72rem;
+    }
+
+    /* Smaller event details underneath the prizes */
+    .event-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .event-card {
+      background: #1b1027;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    .event-card span {
+      display: block;
+      color: #ffb45f;
+      font-size: 0.75rem;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .event-card strong {
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 480px) {
+      .prize-grid,
+      .event-details {
+        gap: 9px;
+      }
+
+      .prize-card {
+        padding: 20px 8px;
+      }
+
+      .prize-label {
+        font-size: 0.72rem;
+      }
+
+      .event-card {
+        padding: 11px 9px;
+      }
+
+      .event-card strong {
+        font-size: 0.82rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
 <header>
   <div class="wrap">
     <div class="brand">
       <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
+
       <div class="brand-copy">
         <h1>Banty Moore Prestige Cup</h1>
         <p>Official tournament hub — fixtures, results, teams and player statistics.</p>
         <small>Prestige • Passion • Football</small>
       </div>
     </div>
+
     <nav aria-label="Main navigation">
       <a href="#overview">Overview</a>
       <a href="#matches-section">Fixtures</a>
@@ -33,25 +137,39 @@
 <main>
   <section class="panel" id="overview">
     <p class="pill">THE TOURNAMENT</p>
-    <h2>Banty Moore Prestige Cup 2026</h2>
-    <p>Prestige. Passion. Football. Follow the teams, fixtures, results and player statistics.</p>
 
-    <div class="grid">
-      <div class="panel">
-        <h3>Kick-off</h3>
+    <h2>Banty Moore Prestige Cup 2026</h2>
+
+    <p>
+      Prestige. Passion. Football. Follow the teams, fixtures,
+      results and player statistics.
+    </p>
+
+    <!-- Prize cards displayed first -->
+    <div class="prize-grid">
+      <div class="prize-card first-prize">
+        <span class="prize-label">🏆 FIRST PRIZE</span>
+        <strong>₦1,000,000</strong>
+        <span class="prize-caption">CHAMPIONS</span>
+      </div>
+
+      <div class="prize-card second-prize">
+        <span class="prize-label">🥈 SECOND PRIZE</span>
+        <strong>₦500,000</strong>
+        <span class="prize-caption">RUNNERS-UP</span>
+      </div>
+    </div>
+
+    <!-- Smaller event details displayed underneath -->
+    <div class="event-details">
+      <div class="event-card">
+        <span>📅 KICK-OFF</span>
         <strong>6 November 2026</strong>
       </div>
-      <div class="panel">
-        <h3>Venue</h3>
+
+      <div class="event-card">
+        <span>📍 VENUE</span>
         <strong>Awoseyin Street, Somolu, Lagos</strong>
-      </div>
-      <div class="panel">
-        <h3>First Prize</h3>
-        <strong>₦1,000,000</strong>
-      </div>
-      <div class="panel">
-        <h3>Second Prize</h3>
-        <strong>₦500,000</strong>
       </div>
     </div>
 
@@ -64,6 +182,7 @@
 
   <section class="panel">
     <h2>Player Registration</h2>
+
     <p>
       Team registration closes
       <strong>Thursday, 5 November 2026 at 7:00 PM Nigeria time.</strong>
@@ -101,12 +220,15 @@
   </div>
 </main>
 
-<footer>Banty Moore Prestige Cup • Prestige • Passion • Football</footer>
+<footer>
+  Banty Moore Prestige Cup • Prestige • Passion • Football
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="supabase-client.js"></script>
 <script src="shared.js"></script>
 <script src="public.js"></script>
+
 </body>
 </html>
