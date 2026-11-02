@@ -92,7 +92,6 @@
     players = playerResult.data || [];
     matches = matchResult.data || [];
 
-    // Populate the fixture team selectors.
     opts($("homeTeam"), teams, team => team.name);
     opts($("awayTeam"), teams, team => team.name);
 
@@ -115,8 +114,6 @@
 
     await renderTeamLinks();
     renderPendingPlayers();
-
-    // Load the draw only after the teams have been fetched.
     await refreshDraw();
   }
 
@@ -229,6 +226,31 @@
 
   // GROUP DRAW MANAGER
 
+  function createClearDrawButton() {
+    if ($("clearDraw")) return;
+
+    const button = document.createElement("button");
+    button.id = "clearDraw";
+    button.type = "button";
+    button.className = "button danger";
+    button.textContent = "Clear All Groups";
+    button.style.marginTop = "12px";
+
+    button.addEventListener("click", clearAllGroups);
+
+    const progress = $("drawProgress");
+    const groupContainer = $("drawGroups");
+    const manager = $("drawManager");
+
+    if (progress && progress.parentElement) {
+      progress.insertAdjacentElement("afterend", button);
+    } else if (groupContainer) {
+      groupContainer.insertAdjacentElement("beforebegin", button);
+    } else if (manager) {
+      manager.appendChild(button);
+    }
+  }
+
   async function refreshDraw() {
     const drawTeam = $("drawTeam");
     const drawGroups = $("drawGroups");
@@ -253,8 +275,6 @@
     drawAssignments = assignmentResult.data || [];
     drawPublished = settingsResult.data?.is_published === true;
 
-    // Rebuild the team dropdown directly from the teams loaded by refresh().
-    // This avoids relying on a previously populated or stale selector.
     drawTeam.innerHTML = "";
 
     const placeholder = document.createElement("option");
@@ -272,6 +292,7 @@
       drawTeam.appendChild(option);
     });
 
+    createClearDrawButton();
     renderDrawGroups();
     updateDrawProgress();
   }
@@ -312,6 +333,7 @@
 
   function updateDrawProgress() {
     const total = drawAssignments.length;
+
     const complete = groups.every(group =>
       drawAssignments.filter(item => item.group_name === group).length === 4
     );
@@ -319,6 +341,7 @@
     const progress = $("drawProgress");
     const publishButton = $("publishDraw");
     const unpublishButton = $("unpublishDraw");
+    const clearButton = $("clearDraw");
 
     if (progress) {
       progress.textContent =
@@ -336,6 +359,10 @@
 
     if (unpublishButton) {
       unpublishButton.hidden = !drawPublished;
+    }
+
+    if (clearButton) {
+      clearButton.disabled = total === 0;
     }
   }
 
@@ -366,11 +393,13 @@
         throw new Error(`Group ${groupName} already has four teams.`);
       }
 
-      // Keep the public draw hidden while changes are being made.
       if (drawPublished) {
         const { error: unpublishError } = await client
           .from("tournament_draw_settings")
-          .update({ is_published: false, updated_at: new Date().toISOString() })
+          .update({
+            is_published: false,
+            updated_at: new Date().toISOString()
+          })
           .eq("id", true);
 
         if (unpublishError) throw unpublishError;
@@ -393,6 +422,60 @@
       await refreshDraw();
     } catch (error) {
       msg(error.message || "Could not save the team assignment.", true);
+    }
+  }
+
+  // CLEAR ALL GROUP ASSIGNMENTS
+
+  async function clearAllGroups() {
+    if (drawAssignments.length === 0) {
+      msg("There are no group assignments to clear.", true);
+      return;
+    }
+
+    const confirmed = confirm(
+      "Are you sure you want to clear ALL groups?\n\n" +
+      "This will remove every team's group assignment and unpublish the draw.\n\n" +
+      "Your teams, players, manager links, fixtures, goals and cards will NOT be deleted."
+    );
+
+    if (!confirmed) return;
+
+    const button = $("clearDraw");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Clearing groups...";
+    }
+
+    try {
+      // Unpublish first so the public website cannot show the old draw.
+      const { error: settingsError } = await client
+        .from("tournament_draw_settings")
+        .update({
+          is_published: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", true);
+
+      if (settingsError) throw settingsError;
+
+      // Delete only group assignments. This does not delete teams.
+      const { error: deleteError } = await client
+        .from("tournament_group_assignments")
+        .delete()
+        .not("team_id", "is", null);
+
+      if (deleteError) throw deleteError;
+
+      msg("All groups have been cleared. You can now pick the teams again.");
+      await refreshDraw();
+    } catch (error) {
+      msg(error.message || "Could not clear the groups.", true);
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Clear All Groups";
+      }
     }
   }
 
