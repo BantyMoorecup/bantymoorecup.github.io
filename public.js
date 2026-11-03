@@ -30,7 +30,7 @@
     );
   };
 
-  // Get the match date using Nigeria local time.
+  // Get match date in Nigeria local time.
   const dateKey = value => {
     if (!value) return "TBC";
 
@@ -50,12 +50,11 @@
     return `${part("year")}-${part("month")}-${part("day")}`;
   };
 
-  // Display a full date heading for each matchday.
+  // Format matchday heading.
   const dateHeading = value => {
     if (value === "TBC") return "DATE TO BE CONFIRMED";
 
     const [year, month, day] = value.split("-").map(Number);
-
     const date = new Date(Date.UTC(year, month - 1, day, 12));
 
     return new Intl.DateTimeFormat("en-NG", {
@@ -67,8 +66,8 @@
     }).format(date).toUpperCase();
   };
 
-  try {
-    async function loadTournament() {
+  async function loadTournament() {
+    try {
       const c = await BANTY.ready();
 
       const [
@@ -81,15 +80,22 @@
         { data: drawSettings, error: de }
       ] = await Promise.all([
         c.from("teams").select("id,name").order("name"),
+
         c.from("players")
           .select("id,team_id,full_name,jersey_number")
           .eq("registration_status", "approved"),
+
         c.from("matches")
           .select("id,home_team_id,away_team_id,kickoff,venue,home_score,away_score,status")
           .order("kickoff"),
+
         c.from("goals").select("player_id,match_id"),
+
         c.from("cards").select("player_id,match_id,card_type"),
-        c.from("tournament_group_assignments").select("team_id,group_name"),
+
+        c.from("tournament_group_assignments")
+          .select("team_id,group_name"),
+
         c.from("tournament_draw_settings")
           .select("is_published")
           .eq("id", true)
@@ -110,7 +116,10 @@
         (players || []).map(p => [p.id, p])
       );
 
-      // Calculate standings for all teams.
+      // =====================================
+      // LEAGUE STANDINGS
+      // =====================================
+
       const standings = {};
 
       (teams || []).forEach(t => {
@@ -174,7 +183,10 @@
           a.name.localeCompare(b.name)
       );
 
-      // Separate standings into Groups A-F.
+      // =====================================
+      // GROUP TABLES
+      // =====================================
+
       const drawPublished = drawSettings?.is_published === true;
       const groupAssignments = assignments || [];
 
@@ -221,12 +233,16 @@
           .join("");
       }
 
-      // Top scorers.
+      // =====================================
+      // TOP SCORERS
+      // =====================================
+
       const counts = {};
 
       (goals || []).forEach(g => {
         if (pl[g.player_id]) {
-          counts[g.player_id] = (counts[g.player_id] || 0) + 1;
+          counts[g.player_id] =
+            (counts[g.player_id] || 0) + 1;
         }
       });
 
@@ -246,7 +262,10 @@
           `)
       );
 
-      // Yellow and red cards.
+      // =====================================
+      // YELLOW AND RED CARDS
+      // =====================================
+
       const cc = {};
 
       (cards || []).forEach(card => {
@@ -281,7 +300,10 @@
           `)
       );
 
-      // Fixtures grouped by match date.
+      // =====================================
+      // FIXTURES - GROUPED BY DATE
+      // =====================================
+
       const matchGroups = {};
 
       (matches || []).forEach(m => {
@@ -301,69 +323,78 @@
       });
 
       $("matches").innerHTML = sortedDates.length
-        ? sortedDates.map(date => {
-            const dayMatches = matchGroups[date];
+        ? sortedDates.map(date => `
+            <section class="fixture-day">
 
-            return `
-              <section class="fixture-day panel">
-                <div class="fixture-day-heading">
-                  <h3>${BANTY.esc(dateHeading(date))}</h3>
-                  <span class="fixture-day-count">
-                    ${dayMatches.length}
-                    ${dayMatches.length === 1 ? "MATCH" : "MATCHES"}
-                  </span>
-                </div>
+              <div class="fixture-day-heading">
+                <h3>${BANTY.esc(dateHeading(date))}</h3>
+                <span>
+                  ${matchGroups[date].length}
+                  ${matchGroups[date].length === 1 ? "MATCH" : "MATCHES"}
+                </span>
+              </div>
 
-                <div class="fixture-list">
-                  ${dayMatches.map(m => {
-                    const home = tm[m.home_team_id] || "TBD";
-                    const away = tm[m.away_team_id] || "TBD";
+              <div class="fixture-list">
 
-                    const played =
-                      m.status === "played" &&
-                      m.home_score != null &&
-                      m.away_score != null;
+                ${matchGroups[date].map(m => {
+                  const home = tm[m.home_team_id] || "TBD";
+                  const away = tm[m.away_team_id] || "TBD";
 
-                    return `
-                      <article class="fixture-row">
-                        <div class="fixture-time">
-                          ${kickoff(m.kickoff)}
+                  const played =
+                    m.status === "played" &&
+                    m.home_score != null &&
+                    m.away_score != null;
+
+                  return `
+                    <article class="fixture-row">
+
+                      <div class="fixture-main">
+
+                        <span class="fixture-status ${played ? "is-played" : ""}">
+                          ${played ? "FT" : "UPCOMING"}
+                        </span>
+
+                        <div class="fixture-team">
+                          ${teamLink(m.home_team_id, home)}
                         </div>
 
-                        <div class="fixture-teams">
-                          <div>${teamLink(m.home_team_id, home)}</div>
-                          <span class="fixture-vs">VS</span>
-                          <div>${teamLink(m.away_team_id, away)}</div>
-                        </div>
-
-                        <div class="fixture-result">
+                        <strong class="fixture-score">
                           ${
                             played
-                              ? `<strong>${BANTY.esc(m.home_score)} – ${BANTY.esc(m.away_score)}</strong>`
-                              : `<span class="fixture-pending">VS</span>`
+                              ? `${BANTY.esc(m.home_score)} – ${BANTY.esc(m.away_score)}`
+                              : "VS"
                           }
+                        </strong>
+
+                        <div class="fixture-team">
+                          ${teamLink(m.away_team_id, away)}
                         </div>
 
-                        <div class="fixture-details">
-                          <span>${BANTY.esc(m.venue || "Venue TBC")}</span>
-                          <span class="fixture-status ${played ? "is-played" : ""}">
-                            ${BANTY.esc(m.status || "scheduled")}
-                          </span>
-                        </div>
-                      </article>
-                    `;
-                  }).join("")}
-                </div>
-              </section>
-            `;
-          }).join("")
+                      </div>
+
+                      <div class="fixture-meta">
+                        <span>${kickoff(m.kickoff)}</span>
+                        <span>${BANTY.esc(m.venue || "Venue TBC")}</span>
+                      </div>
+
+                    </article>
+                  `;
+                }).join("")}
+
+              </div>
+            </section>
+          `).join("")
         : empty("No fixtures have been published yet.");
 
-      // Teams and approved players.
+      // =====================================
+      // TEAMS AND APPROVED PLAYERS
+      // =====================================
+
       $("teams").innerHTML =
         (teams || []).map(t => `
           <div class="panel">
             <h3>${teamLink(t.id, t.name)}</h3>
+
             <ul>
               ${(players || [])
                 .filter(p => p.team_id === t.id)
@@ -377,6 +408,7 @@
                 `).join("") ||
                 '<li class="muted">No approved players yet</li>'}
             </ul>
+
             <p>
               <a class="button" href="team.html?id=${encodeURIComponent(t.id)}">
                 View team profile
@@ -384,9 +416,8 @@
             </p>
           </div>
         `).join("") || empty();
-    }
 
-    loadTournament().catch(e => {
+    } catch (e) {
       ["league", "scorers", "cards", "matches", "teams"].forEach(id => {
         $(id).innerHTML = empty(
           e.message || "Site setup is not complete."
@@ -394,9 +425,8 @@
       });
 
       console.error(e);
-    });
-
-  } catch (e) {
-    console.error(e);
+    }
   }
+
+  loadTournament();
 })();
