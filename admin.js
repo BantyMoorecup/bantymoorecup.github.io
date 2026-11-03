@@ -1,3 +1,4 @@
+
 (function () {
   const $ = id => document.getElementById(id);
   const notice = $("notice");
@@ -61,6 +62,156 @@
     return players.find(player =>
       String(player.id) === String(playerId)
     )?.full_name || "Unknown player";
+  }
+
+  function formatKickoff(value) {
+    if (!value) return "Not scheduled";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "Invalid date";
+
+    return new Intl.DateTimeFormat("en-NG", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(date);
+  }
+
+  // FIXTURES MANAGEMENT
+
+  function renderFixturesManagement() {
+    const container = $("fixturesManagement");
+    if (!container) return;
+
+    if (!matches.length) {
+      container.innerHTML =
+        '<p class="muted">No fixtures have been created yet.</p>';
+      return;
+    }
+
+    const sortedMatches = [...matches].sort((a, b) => {
+      const aDate = a.kickoff ? new Date(a.kickoff).getTime() : Infinity;
+      const bDate = b.kickoff ? new Date(b.kickoff).getTime() : Infinity;
+      return aDate - bDate;
+    });
+
+    container.innerHTML = `
+      <h3>All Fixtures (${sortedMatches.length})</h3>
+
+      ${sortedMatches.map(match => {
+        const played =
+          match.status === "played" ||
+          (match.home_score != null && match.away_score != null);
+
+        const score =
+          match.home_score != null && match.away_score != null
+            ? `${match.home_score} - ${match.away_score}`
+            : "Not recorded";
+
+        return `
+          <div class="panel" style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+              <strong>${BANTY.esc(teamName(match.home_team_id))}</strong>
+              <strong>VS</strong>
+              <strong>${BANTY.esc(teamName(match.away_team_id))}</strong>
+            </div>
+
+            <p><strong>Date and time:</strong> ${BANTY.esc(formatKickoff(match.kickoff))}</p>
+
+            <p><strong>Venue:</strong> ${BANTY.esc(match.venue || "Not specified")}</p>
+
+            <p><strong>Status:</strong> ${played ? "Played" : "Upcoming"}</p>
+
+            <p><strong>Score:</strong> ${BANTY.esc(score)}</p>
+
+            <button
+              class="button danger"
+              type="button"
+              data-delete-match="${BANTY.esc(match.id)}">
+              Delete Fixture
+            </button>
+          </div>
+        `;
+      }).join("")}
+    `;
+
+    container.querySelectorAll("[data-delete-match]").forEach(button => {
+      button.onclick = () => deleteFixture(button.dataset.deleteMatch);
+    });
+  }
+
+  async function deleteFixture(matchId) {
+    const match = matches.find(
+      item => String(item.id) === String(matchId)
+    );
+
+    if (!match) {
+      msg("Fixture could not be found. Refresh the page and try again.", true);
+      return;
+    }
+
+    const confirmed = confirm(
+      `Delete this fixture?\n\n${matchLabel(match)}\n\n` +
+      "Its recorded goals, cards and Man of the Match award will also be deleted.\n\n" +
+      "This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    const button = $("fixturesManagement").querySelector(
+      `[data-delete-match="${CSS.escape(String(matchId))}"]`
+    );
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Deleting...";
+    }
+
+    try {
+      const id = Number(matchId);
+
+      // Remove related records before deleting the fixture.
+      const relatedTables = [
+        "goals",
+        "cards",
+        "match_man_of_the_match"
+      ];
+
+      for (const table of relatedTables) {
+        const { error } = await client
+          .from(table)
+          .delete()
+          .eq("match_id", id);
+
+        if (error) {
+          throw new Error(
+            `Could not delete related ${table} records: ${error.message}`
+          );
+        }
+      }
+
+      const { error: matchError } = await client
+        .from("matches")
+        .delete()
+        .eq("id", id);
+
+      if (matchError) throw matchError;
+
+      msg(`${matchLabel(match)} was deleted successfully.`);
+      await refresh();
+
+    } catch (error) {
+      msg(
+        error.message ||
+        "Could not delete this fixture. Please try again.",
+        true
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Delete Fixture";
+      }
+    }
   }
 
   async function requireAdmin() {
@@ -135,6 +286,7 @@
         `${player.full_name} — ${teamName(player.team_id)}`
     );
 
+    renderFixturesManagement();
     await renderTeamLinks();
     renderPendingPlayers();
     await refreshDraw();
