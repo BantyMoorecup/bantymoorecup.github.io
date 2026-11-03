@@ -15,6 +15,13 @@
   const teamLink = (id, name) =>
     `<a href="team.html?id=${encodeURIComponent(id)}">${BANTY.esc(name)}</a>`;
 
+  // PLAYER PROFILE LINK
+  const playerLink = (id, name) =>
+    `<a class="player-profile-link"
+        href="player.html?id=${encodeURIComponent(id)}">
+        ${BANTY.esc(name)}
+     </a>`;
+
   const kickoff = value => {
     if (!value) return "TBC";
 
@@ -252,7 +259,7 @@
           .sort((a, b) => b[1] - a[1])
           .map(([id, n]) => `
             <tr>
-              <td>${BANTY.esc(pl[id].full_name)}</td>
+              <td>${playerLink(id, pl[id].full_name)}</td>
               <td>${teamLink(
                 pl[id].team_id,
                 tm[pl[id].team_id] || "Unknown team"
@@ -289,7 +296,7 @@
           )
           .map(([id, v]) => `
             <tr>
-              <td>${BANTY.esc(pl[id].full_name)}</td>
+              <td>${playerLink(id, pl[id].full_name)}</td>
               <td>${teamLink(
                 pl[id].team_id,
                 tm[pl[id].team_id] || "Unknown team"
@@ -397,10 +404,10 @@
 
             <ul>
               ${(players || [])
-                .filter(p => p.team_id === t.id)
+                .filter(p => String(p.team_id) === String(t.id))
                 .map(p => `
                   <li>
-                    ${BANTY.esc(p.full_name)}
+                    ${playerLink(p.id, p.full_name)}
                     ${p.jersey_number != null
                       ? ` (#${BANTY.esc(p.jersey_number)})`
                       : ""}
