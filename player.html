@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#28143f">
+  <title>Player Profile | Banty Moore Prestige Cup</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
+        <div class="brand-copy">
+          <h1>BANTY MOORE PRESTIGE CUP</h1>
+          <p>Official Player Profile</p>
+          <small>2026 TOURNAMENT</small>
+        </div>
+      </div>
+
+      <nav class="main-nav">
+        <a href="index.html">Overview</a>
+        <a href="index.html#fixtures">Fixtures</a>
+        <a href="index.html#table">Table</a>
+        <a href="index.html#stats">Statistics</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-heading">
+      <p><a href="index.html">Home</a> / Player Profile</p>
+      <h2>PLAYER PROFILE</h2>
+      <p>Official player statistics and tournament information.</p>
+    </div>
+
+    <section class="panel player-profile-card">
+
+      <div class="player-profile-header">
+        <div class="player-avatar">
+          <span id="player-number">—</span>
+        </div>
+
+        <div class="player-identity">
+          <span class="hero-label">BANTY MOORE PRESTIGE CUP</span>
+          <h1 id="player-name">Loading player...</h1>
+          <p id="player-team">Please wait</p>
+          <span id="player-jersey" class="pill">PLAYER</span>
+        </div>
+      </div>
+
+      <div class="player-profile-divider"></div>
+
+      <h3>TOURNAMENT STATISTICS</h3>
+
+      <div id="player-stats" class="player-stats-grid">
+        <div class="player-stat">
+          <span>GOALS</span>
+          <strong>—</strong>
+        </div>
+        <div class="player-stat">
+          <span>YELLOW CARDS</span>
+          <strong>—</strong>
+        </div>
+        <div class="player-stat">
+          <span>RED CARDS</span>
+          <strong>—</strong>
+        </div>
+      </div>
+
+      <div class="player-profile-divider"></div>
+
+      <h3>PLAYER INFORMATION</h3>
+
+      <div class="player-information">
+        <div>
+          <span>TEAM</span>
+          <strong id="player-team-info">—</strong>
+        </div>
+
+        <div>
+          <span>JERSEY NUMBER</span>
+          <strong id="player-number-info">—</strong>
+        </div>
+
+        <div>
+          <span>REGISTRATION</span>
+          <strong id="player-registration">—</strong>
+        </div>
+      </div>
+
+      <p id="player-message" class="muted">
+        Loading player information...
+      </p>
+
+    </section>
+
+    <p class="player-back-link">
+      <a href="index.html">← Back to tournament overview</a>
+    </p>
+  </main>
+
+  <footer>
+    <strong>BANTY MOORE PRESTIGE CUP 2026</strong>
+    <p>Official Tournament Website</p>
+    <p>Website designed &amp; developed by Simi</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="shared.js"></script>
+  <script src="player.js"></script>
+
+</body>
+</html>
