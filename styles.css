@@ -674,6 +674,151 @@ footer strong {
     font-size: .82rem;
   }
 }
+/* BANTYMOORE - DATE-GROUPED FIXTURES */
+
+.fixture-day {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid rgba(255, 138, 25, 0.2);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #321c49, #241334);
+}
+
+.fixture-day-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fixture-day-heading h3 {
+  margin: 0;
+  color: #ff8a19;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.fixture-day-count {
+  background: rgba(255, 138, 25, 0.13);
+  color: #ffad59;
+  border: 1px solid rgba(255, 138, 25, 0.3);
+  border-radius: 30px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.fixture-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.fixture-row {
+  display: grid;
+  grid-template-columns: 125px minmax(0, 1fr) 75px;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.fixture-row:last-child {
+  border-bottom: none;
+}
+
+.fixture-time {
+  color: #ffad59;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fixture-teams {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-weight: 700;
+}
+
+.fixture-teams a {
+  color: #fffaf3;
+  text-decoration: none;
+}
+
+.fixture-teams a:hover {
+  color: #ff8a19;
+}
+
+.fixture-vs {
+  color: #ff8a19;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.fixture-result {
+  text-align: center;
+  color: #ff8a19;
+  font-size: 17px;
+}
+
+.fixture-pending {
+  color: #c7b8d3;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.fixture-details {
+  grid-column: 2 / 4;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #c7b8d3;
+  font-size: 11px;
+}
+
+.fixture-status {
+  color: #ffad59;
+  text-transform: capitalize;
+  font-weight: 700;
+}
+
+.fixture-status.is-played {
+  color: #8fe0a3;
+}
+
+@media (max-width: 600px) {
+  .fixture-day {
+    padding: 14px;
+  }
+
+  .fixture-row {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+
+  .fixture-time {
+    grid-column: 1 / -1;
+  }
+
+  .fixture-teams {
+    gap: 7px;
+    font-size: 13px;
+  }
+
+  .fixture-result {
+    font-size: 15px;
+  }
+
+  .fixture-details {
+    grid-column: 1 / -1;
+  }
+}
 
 @media(max-width:350px) {
   .prize-grid {
