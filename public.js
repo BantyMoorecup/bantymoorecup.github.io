@@ -1,3 +1,4 @@
+
 (async function () {
   const $ = id => document.getElementById(id);
 
@@ -37,7 +38,9 @@
       { data: players, error: pe },
       { data: matches, error: me },
       { data: goals, error: ge },
-      { data: cards, error: ce }
+      { data: cards, error: ce },
+      { data: assignments, error: ae },
+      { data: drawSettings, error: de }
     ] = await Promise.all([
       c.from("teams").select("id,name").order("name"),
       c.from("players")
@@ -47,10 +50,15 @@
         .select("id,home_team_id,away_team_id,kickoff,venue,home_score,away_score,status")
         .order("kickoff"),
       c.from("goals").select("player_id,match_id"),
-      c.from("cards").select("player_id,match_id,card_type")
+      c.from("cards").select("player_id,match_id,card_type"),
+      c.from("tournament_group_assignments").select("team_id,group_name"),
+      c.from("tournament_draw_settings")
+        .select("is_published")
+        .eq("id", true)
+        .maybeSingle()
     ]);
 
-    if (te || pe || me || ge || ce) {
+    if (te || pe || me || ge || ce || ae || de) {
       throw new Error(
         "Could not load tournament data. Check database setup and policies."
       );
@@ -64,7 +72,7 @@
       (players || []).map(p => [p.id, p])
     );
 
-    // Calculate league standings.
+    // Calculate standings for all teams.
     const standings = {};
 
     (teams || []).forEach(t => {
@@ -128,23 +136,55 @@
         a.name.localeCompare(b.name)
     );
 
-    $("league").innerHTML = table(
-      ["#", "Team", "P", "W", "D", "L", "GD", "Pts"],
-      ordered.map((s, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${teamLink(s.id, s.name)}</td>
-          <td>${s.p}</td>
-          <td>${s.w}</td>
-          <td>${s.d}</td>
-          <td>${s.l}</td>
-          <td>${s.gf - s.ga}</td>
-          <td><b>${s.pts}</b></td>
-        </tr>
-      `)
+    // Separate standings into Groups A-F.
+    const drawPublished = drawSettings?.is_published === true;
+
+    const groupAssignments = assignments || [];
+
+    const teamGroup = Object.fromEntries(
+      groupAssignments.map(item => [
+        String(item.team_id),
+        item.group_name
+      ])
     );
 
-    // Calculate goals per approved player.
+    if (!drawPublished) {
+      $("league").innerHTML = empty(
+        "The group draw has not been published yet."
+      );
+    } else {
+      $("league").innerHTML = ["A", "B", "C", "D", "E", "F"]
+        .map(group => {
+          const groupTeams = ordered.filter(
+            team => teamGroup[String(team.id)] === group
+          );
+
+          return `
+            <section class="group-table panel">
+              <h3>GROUP ${group}</h3>
+
+              ${table(
+                ["#", "Team", "P", "W", "D", "L", "GD", "Pts"],
+                groupTeams.map((team, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${teamLink(team.id, team.name)}</td>
+                    <td>${team.p}</td>
+                    <td>${team.w}</td>
+                    <td>${team.d}</td>
+                    <td>${team.l}</td>
+                    <td>${team.gf - team.ga}</td>
+                    <td><b>${team.pts}</b></td>
+                  </tr>
+                `)
+              )}
+            </section>
+          `;
+        })
+        .join("");
+    }
+
+    // Top scorers.
     const counts = {};
 
     (goals || []).forEach(g => {
@@ -169,7 +209,7 @@
         `)
     );
 
-    // Calculate yellow and red cards.
+    // Yellow and red cards.
     const cc = {};
 
     (cards || []).forEach(card => {
