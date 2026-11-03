@@ -4,231 +4,684 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Official Banty Moore Prestige Cup tournament hub.">
-  <title>Banty Moore Prestige Cup</title>
+  <meta name="description" content="Official Banty Moore Prestige Cup 2026 tournament hub.">
+  <meta name="theme-color" content="#101b18">
+
+  <title>Banty Moore Prestige Cup 2026</title>
+
   <link rel="stylesheet" href="styles.css">
 
   <style>
-    /* Prize display */
+    :root {
+      --gold: #e9b84c;
+      --green: #153d2b;
+      --dark: #101b18;
+      --surface: #192720;
+    }
+
+    body {
+      background: var(--dark);
+    }
+
+    header {
+      background: #101b18;
+      border-bottom: 1px solid rgba(233,184,76,.2);
+    }
+
+    .brand img {
+      border-color: var(--gold);
+    }
+
+    .brand small {
+      color: var(--gold);
+    }
+
+    .main-nav {
+      display: flex;
+      gap: 8px;
+      margin-top: 22px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+
+    .main-nav a {
+      flex: 0 0 auto;
+      background: transparent;
+      color: #d8e3dc;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 9px;
+      padding: 10px 17px;
+      font-size: .9rem;
+      text-align: center;
+    }
+
+    .main-nav a.active,
+    .main-nav a:hover {
+      background: var(--gold);
+      color: #172019;
+      border-color: var(--gold);
+    }
+
+    .header-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 13px;
+    }
+
+    .header-links a {
+      color: var(--gold);
+      font-size: .86rem;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1200px;
+      padding-top: 25px;
+    }
+
+    .page-section {
+      display: none;
+      animation: pageFade .25s ease;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    @keyframes pageFade {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 85% 15%, rgba(233,184,76,.2), transparent 35%),
+        linear-gradient(135deg, #1d4b34, #10251c 75%);
+      border: 1px solid rgba(233,184,76,.3);
+      border-radius: 20px;
+      padding: clamp(25px, 5vw, 55px);
+      margin-bottom: 20px;
+    }
+
+    .hero-label {
+      color: var(--gold);
+      font-size: .8rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+    }
+
+    .hero h2 {
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: 1.08;
+      margin: 13px 0;
+      max-width: 700px;
+      color: white;
+    }
+
+    .hero p {
+      max-width: 620px;
+      color: #d1ded5;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .hero-actions a {
+      background: var(--gold);
+      color: #172019;
+      padding: 12px 18px;
+      border-radius: 9px;
+      font-weight: 900;
+    }
+
+    .hero-actions a.secondary {
+      background: transparent;
+      color: white;
+      border: 1px solid rgba(255,255,255,.3);
+    }
+
+    .countdown-panel {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      background: #1b3025;
+      border: 1px solid rgba(233,184,76,.2);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .countdown-panel h3 {
+      margin: 0;
+      color: white;
+    }
+
+    .countdown-panel p {
+      margin: 4px 0 0;
+      color: #bdcfc2;
+      font-size: .88rem;
+    }
+
+    .countdown {
+      display: flex;
+      gap: 10px;
+    }
+
+    .countdown-item {
+      min-width: 62px;
+      text-align: center;
+      background: #101b18;
+      border-radius: 10px;
+      padding: 10px 7px;
+    }
+
+    .countdown-item strong {
+      display: block;
+      color: var(--gold);
+      font-size: 1.5rem;
+    }
+
+    .countdown-item span {
+      display: block;
+      font-size: .65rem;
+      color: #b8c9bd;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
     .prize-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin: 24px 0 18px;
+      gap: 15px;
+      margin: 20px 0;
     }
 
     .prize-card {
-      padding: 26px 16px;
-      border-radius: 16px;
+      border-radius: 15px;
+      padding: 25px 15px;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.15);
-      box-sizing: border-box;
     }
 
     .first-prize {
-      background: linear-gradient(135deg, #754000, #ffbd35);
-      color: #fff;
+      background: linear-gradient(135deg, #78511a, #d9a83f);
+      color: white;
     }
 
     .second-prize {
-      background: linear-gradient(135deg, #34394a, #c4ccd8);
-      color: #171421;
+      background: linear-gradient(135deg, #3a4650, #aab8c2);
+      color: #14202a;
     }
 
-    .prize-label,
-    .prize-caption {
-      display: block;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-    }
-
-    .prize-label {
-      font-size: 0.85rem;
+    .prize-card span {
+      font-weight: 900;
+      letter-spacing: 1px;
+      font-size: .8rem;
     }
 
     .prize-card strong {
       display: block;
       font-size: clamp(1.5rem, 4vw, 2.5rem);
-      margin: 14px 0;
+      margin: 12px 0;
     }
 
-    .prize-caption {
-      font-size: 0.72rem;
-    }
-
-    /* Smaller event details underneath the prizes */
     .event-details {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
-      margin-bottom: 22px;
+      margin: 20px 0;
     }
 
     .event-card {
-      background: #1b1027;
-      border: 1px solid var(--line);
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,.1);
       border-radius: 12px;
-      padding: 14px;
-      box-sizing: border-box;
+      padding: 16px;
     }
 
     .event-card span {
       display: block;
-      color: #ffb45f;
-      font-size: 0.75rem;
-      font-weight: 800;
-      margin-bottom: 7px;
+      color: var(--gold);
+      font-size: .75rem;
+      font-weight: 900;
+      margin-bottom: 6px;
     }
 
     .event-card strong {
-      font-size: 0.95rem;
+      font-size: .95rem;
     }
 
-    @media (max-width: 480px) {
-      .prize-grid,
-      .event-details {
-        gap: 9px;
+    .section-heading {
+      margin: 0 0 18px;
+    }
+
+    .section-heading h2 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin: 0 0 5px;
+    }
+
+    .section-heading p {
+      color: #b8c9bd;
+      margin: 0;
+    }
+
+    .panel {
+      background: linear-gradient(145deg, #20352a, #17251d);
+      border-color: rgba(255,255,255,.1);
+    }
+
+    .panel h2,
+    .panel h3 {
+      color: white;
+    }
+
+    .panel h3 {
+      color: var(--gold);
+    }
+
+    .pill {
+      background: rgba(233,184,76,.13);
+      color: var(--gold);
+    }
+
+    .group-table {
+      margin: 14px 0;
+      background: #192920;
+    }
+
+    th {
+      background: rgba(233,184,76,.12);
+      color: var(--gold);
+    }
+
+    td {
+      color: #e1ebe4;
+    }
+
+    a {
+      color: var(--gold);
+    }
+
+    .button,
+    button {
+      background: var(--gold);
+      color: #172019;
+    }
+
+    .registration-banner {
+      background: linear-gradient(135deg, #254a34, #192d21);
+      border: 1px solid rgba(233,184,76,.25);
+    }
+
+    .registration-banner h2 {
+      color: var(--gold);
+    }
+
+    .admin-link {
+      color: #b8c9bd;
+    }
+
+    footer {
+      background: #0d1712;
+      border-top-color: rgba(233,184,76,.2);
+      line-height: 1.9;
+    }
+
+    footer strong {
+      color: var(--gold);
+    }
+
+    @media(max-width: 520px) {
+      .main-nav {
+        gap: 6px;
       }
 
-      .prize-card {
-        padding: 20px 8px;
+      .main-nav a {
+        padding: 9px 12px;
+        font-size: .82rem;
       }
 
-      .prize-label {
-        font-size: 0.72rem;
+      .countdown-panel {
+        align-items: flex-start;
+      }
+
+      .countdown {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .countdown-item {
+        min-width: 0;
+        flex: 1;
       }
 
       .event-card {
-        padding: 11px 9px;
+        padding: 12px;
       }
 
       .event-card strong {
-        font-size: 0.82rem;
+        font-size: .82rem;
+      }
+    }
+
+    @media(max-width: 350px) {
+      .prize-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
 
 <body>
+
 <header>
   <div class="wrap">
+
     <div class="brand">
       <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
 
       <div class="brand-copy">
         <h1>Banty Moore Prestige Cup</h1>
-        <p>Official tournament hub — fixtures, results, teams and player statistics.</p>
-        <small>Prestige • Passion • Football</small>
+        <p>Official tournament website</p>
+        <small>PRESTIGE • PASSION • FOOTBALL</small>
       </div>
     </div>
 
-    <nav aria-label="Main navigation">
-      <a href="#overview">Overview</a>
-      <a href="#matches-section">Fixtures</a>
-      <a href="#league-section">League Table</a>
-      <a href="#scorers-section">Top Scorers</a>
-      <a href="#teams-section">Teams</a>
-      <a href="registration.html">Team Registration</a>
-      <a href="admin.html">Admin</a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="#overview" class="active" data-page="overview">Overview</a>
+      <a href="#fixtures" data-page="fixtures">Fixtures</a>
+      <a href="#table" data-page="table">Table</a>
+      <a href="#stats" data-page="stats">Stats</a>
     </nav>
+
+    <div class="header-links">
+      <a href="registration.html">Team Registration</a>
+      <a href="admin.html">Admin Login</a>
+    </div>
+
   </div>
 </header>
 
 <main>
-  <section class="panel" id="overview">
-    <p class="pill">THE TOURNAMENT</p>
 
-    <h2>Banty Moore Prestige Cup 2026</h2>
+  <!-- OVERVIEW PAGE -->
+  <section class="page-section active" id="overview">
 
-    <p>
-      Prestige. Passion. Football. Follow the teams, fixtures,
-      results and player statistics.
-    </p>
+    <div class="hero">
+      <span class="hero-label">OFFICIAL TOURNAMENT 2026</span>
 
-    <!-- Prize cards displayed first -->
-    <div class="prize-grid">
-      <div class="prize-card first-prize">
-        <span class="prize-label">🏆 FIRST PRIZE</span>
-        <strong>₦1,000,000</strong>
-        <span class="prize-caption">CHAMPIONS</span>
-      </div>
+      <h2>THE BATTLE FOR PRESTIGE BEGINS.</h2>
 
-      <div class="prize-card second-prize">
-        <span class="prize-label">🥈 SECOND PRIZE</span>
-        <strong>₦500,000</strong>
-        <span class="prize-caption">RUNNERS-UP</span>
+      <p>
+        Welcome to the Banty Moore Prestige Cup.
+        Follow the teams, track the competition and
+        stay updated with every result throughout the tournament.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#fixtures" data-page="fixtures">Explore Fixtures</a>
+        <a href="#table" data-page="table" class="secondary">View Group Tables</a>
       </div>
     </div>
 
-    <!-- Smaller event details displayed underneath -->
+    <div class="countdown-panel">
+      <div>
+        <h3>COUNTDOWN TO THE GRAND FINAL</h3>
+        <p>20 December 2026</p>
+      </div>
+
+      <div class="countdown" id="countdown">
+        <div class="countdown-item">
+          <strong id="days">--</strong>
+          <span>Days</span>
+        </div>
+
+        <div class="countdown-item">
+          <strong id="hours">--</strong>
+          <span>Hours</span>
+        </div>
+
+        <div class="countdown-item">
+          <strong id="minutes">--</strong>
+          <span>Minutes</span>
+        </div>
+
+        <div class="countdown-item">
+          <strong id="seconds">--</strong>
+          <span>Seconds</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-heading">
+      <h2>THE PRIZE MONEY</h2>
+      <p>Only the best will lift the trophy.</p>
+    </div>
+
+    <div class="prize-grid">
+
+      <div class="prize-card first-prize">
+        <span>🏆 FIRST PRIZE</span>
+        <strong>₦1,000,000</strong>
+        <span>CHAMPIONS</span>
+      </div>
+
+      <div class="prize-card second-prize">
+        <span>🥈 SECOND PRIZE</span>
+        <strong>₦500,000</strong>
+        <span>RUNNERS-UP</span>
+      </div>
+
+    </div>
+
     <div class="event-details">
+
       <div class="event-card">
-        <span>📅 KICK-OFF</span>
+        <span>📅 TOURNAMENT KICK-OFF</span>
         <strong>6 November 2026</strong>
+      </div>
+
+      <div class="event-card">
+        <span>🏆 GRAND FINAL</span>
+        <strong>20 December 2026</strong>
       </div>
 
       <div class="event-card">
         <span>📍 VENUE</span>
         <strong>Awoseyin Street, Somolu, Lagos</strong>
       </div>
+
+      <div class="event-card">
+        <span>⚽ COMPETITION</span>
+        <strong>24 Teams • 6 Groups</strong>
+      </div>
+
     </div>
 
-    <p class="row-actions">
-      <a class="button" href="#matches-section">View Fixtures</a>
-      <a class="button" href="#teams-section">Explore Teams</a>
-      <a class="button" href="registration.html">Team Registration</a>
-    </p>
-  </section>
+    <section class="panel registration-banner">
+      <h2>PLAYER REGISTRATION</h2>
 
-  <section class="panel">
-    <h2>Player Registration</h2>
+      <p>
+        Team registration closes
+        <strong>Thursday, 5 November 2026 at 7:00 PM Nigeria time.</strong>
+      </p>
 
-    <p>
-      Team registration closes
-      <strong>Thursday, 5 November 2026 at 7:00 PM Nigeria time.</strong>
-      Managers must use their own team registration link.
-      Each team can register up to six players.
-      Registrations are subject to admin approval.
-    </p>
-  </section>
+      <p>
+        Managers must use their own team registration link.
+        Each team can register up to six players.
+        All registrations are subject to administrator approval.
+      </p>
 
-  <div class="grid">
-    <section class="panel" id="league-section">
-      <h2>League Table</h2>
-      <div id="league" class="table-wrap">Loading table…</div>
+      <a href="registration.html" class="button">Team Registration</a>
     </section>
 
+    <section class="panel" id="teams-section">
+      <div class="section-heading">
+        <h2>PARTICIPATING TEAMS</h2>
+        <p>Meet the teams competing for the trophy.</p>
+      </div>
+
+      <div id="teams">Loading teams…</div>
+    </section>
+
+  </section>
+
+
+  <!-- FIXTURES PAGE -->
+  <section class="page-section" id="fixtures">
+
+    <div class="section-heading">
+      <h2>FIXTURES & RESULTS</h2>
+      <p>Follow every match from the opening game to the final.</p>
+    </div>
+
+    <section class="panel" id="matches-section">
+      <div id="matches" class="table-wrap">Loading fixtures…</div>
+    </section>
+
+  </section>
+
+
+  <!-- TABLE PAGE -->
+  <section class="page-section" id="table">
+
+    <div class="section-heading">
+      <h2>GROUP STANDINGS</h2>
+      <p>Track the position and performance of every team.</p>
+    </div>
+
+    <section class="panel" id="league-section">
+      <div id="league">Loading group tables…</div>
+    </section>
+
+  </section>
+
+
+  <!-- STATS PAGE -->
+  <section class="page-section" id="stats">
+
+    <div class="section-heading">
+      <h2>TOURNAMENT STATISTICS</h2>
+      <p>Individual performances and discipline records.</p>
+    </div>
+
     <section class="panel" id="scorers-section">
-      <h2>Top Scorers</h2>
+      <h2>⚽ GOLDEN BOOT RACE</h2>
+      <p class="muted">Top goalscorers in the tournament.</p>
       <div id="scorers" class="table-wrap">Loading scorers…</div>
     </section>
 
     <section class="panel" id="cards-section">
-      <h2>Cards Table</h2>
+      <h2>🟨 DISCIPLINARY RECORD</h2>
+      <p class="muted">Yellow and red cards recorded during matches.</p>
       <div id="cards" class="table-wrap">Loading cards…</div>
     </section>
 
-    <section class="panel" id="matches-section">
-      <h2>Fixtures &amp; Results</h2>
-      <div id="matches" class="table-wrap">Loading fixtures…</div>
-    </section>
+  </section>
 
-    <section class="panel" id="teams-section">
-      <h2>Teams &amp; Players</h2>
-      <div id="teams">Loading teams…</div>
-    </section>
-  </div>
 </main>
 
+
 <footer>
-  Banty Moore Prestige Cup • Prestige • Passion • Football
+  <strong>BANTY MOORE PRESTIGE CUP 2026</strong>
+  <br>
+  Prestige • Passion • Football
+  <br>
+  Website designed &amp; developed by Simi
+  <br>
+  +234 703 527 3500
+  <br>
+  gbenlesimi@gmail.com
 </footer>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="supabase-client.js"></script>
 <script src="shared.js"></script>
 <script src="public.js"></script>
+
+<script>
+  // Switch between the four main website sections.
+  (function () {
+    const links = document.querySelectorAll("[data-page]");
+    const sections = document.querySelectorAll(".page-section");
+
+    function showPage(page) {
+      const selected = document.getElementById(page);
+
+      if (!selected || !selected.classList.contains("page-section")) {
+        page = "overview";
+      }
+
+      sections.forEach(section => {
+        section.classList.toggle("active", section.id === page);
+      });
+
+      links.forEach(link => {
+        link.classList.toggle("active", link.dataset.page === page);
+      });
+
+      if (window.location.hash !== "#" + page) {
+        history.replaceState(null, "", "#" + page);
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    links.forEach(link => {
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        showPage(link.dataset.page);
+      });
+    });
+
+    window.addEventListener("hashchange", () => {
+      const page = window.location.hash.replace("#", "");
+      showPage(page || "overview");
+    });
+
+    const initialPage = window.location.hash.replace("#", "");
+    showPage(initialPage || "overview");
+  })();
+
+
+  // Countdown to the grand final.
+  (function () {
+    const finalDate = new Date("2026-12-20T00:00:00+01:00").getTime();
+
+    function updateCountdown() {
+      const remaining = finalDate - Date.now();
+
+      if (remaining <= 0) {
+        document.getElementById("countdown").innerHTML =
+          "<strong>THE GRAND FINAL IS HERE!</strong>";
+        return;
+      }
+
+      const days = Math.floor(remaining / 86400000);
+      const hours = Math.floor((remaining % 86400000) / 3600000);
+      const minutes = Math.floor((remaining % 3600000) / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+
+      document.getElementById("days").textContent = days;
+      document.getElementById("hours").textContent = hours;
+      document.getElementById("minutes").textContent = minutes;
+      document.getElementById("seconds").textContent = seconds;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  })();
+</script>
 
 </body>
 </html>
