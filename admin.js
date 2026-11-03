@@ -1,4 +1,3 @@
-
 (function () {
   const $ = id => document.getElementById(id);
   const notice = $("notice");
@@ -12,6 +11,7 @@
   let matches = [];
   let drawAssignments = [];
   let drawPublished = false;
+  let motmAwards = [];
 
   const linkStoreKey = "bantyMooreRegistrationLinks";
   const groups = ["A", "B", "C", "D", "E", "F"];
@@ -47,6 +47,22 @@
       ).join("");
   }
 
+  function teamName(teamId) {
+    return teams.find(team =>
+      String(team.id) === String(teamId)
+    )?.name || "Unknown team";
+  }
+
+  function matchLabel(match) {
+    return `${teamName(match.home_team_id)} vs ${teamName(match.away_team_id)}`;
+  }
+
+  function playerName(playerId) {
+    return players.find(player =>
+      String(player.id) === String(playerId)
+    )?.full_name || "Unknown player";
+  }
+
   async function requireAdmin() {
     client = await BANTY.ready();
 
@@ -74,48 +90,59 @@
   }
 
   async function refresh() {
-    const [teamResult, playerResult, matchResult] = await Promise.all([
+    const [
+      teamResult,
+      playerResult,
+      matchResult,
+      motmResult
+    ] = await Promise.all([
       client.from("teams").select("*").order("name"),
       client.from("players").select("*").order("created_at", { ascending: true }),
-      client.from("matches").select("*").order("kickoff")
+      client.from("matches").select("*").order("kickoff"),
+      client.from("match_man_of_the_match").select("match_id,player_id,created_at")
     ]);
 
-    if (teamResult.error || playerResult.error || matchResult.error) {
+    if (
+      teamResult.error ||
+      playerResult.error ||
+      matchResult.error ||
+      motmResult.error
+    ) {
       throw new Error(
         teamResult.error?.message ||
         playerResult.error?.message ||
-        matchResult.error?.message
+        matchResult.error?.message ||
+        motmResult.error?.message
       );
     }
 
     teams = teamResult.data || [];
     players = playerResult.data || [];
     matches = matchResult.data || [];
+    motmAwards = motmResult.data || [];
 
     opts($("homeTeam"), teams, team => team.name);
     opts($("awayTeam"), teams, team => team.name);
 
-    const matchLabel = match =>
-      `${teams.find(team => String(team.id) === String(match.home_team_id))?.name || "Home"} vs ` +
-      `${teams.find(team => String(team.id) === String(match.away_team_id))?.name || "Away"} ` +
-      `(${match.status})`;
-
     opts($("resultMatch"), matches, matchLabel);
     opts($("eventMatch"), matches, matchLabel);
+    opts($("motmMatch"), matches, matchLabel);
 
     opts(
       $("eventPlayer"),
       players.filter(player => player.registration_status === "approved"),
       player =>
-        `${player.full_name} — ${
-          teams.find(team => String(team.id) === String(player.team_id))?.name || ""
-        }`
+        `${player.full_name} — ${teamName(player.team_id)}`
     );
 
     await renderTeamLinks();
     renderPendingPlayers();
     await refreshDraw();
+    updateMotmPlayers();
+    renderMotmAwards();
   }
+
+  // TEAM LINKS
 
   async function renderTeamLinks() {
     const { data, error } = await client
@@ -196,6 +223,8 @@
     });
   }
 
+  // PLAYER APPROVALS
+
   function renderPendingPlayers() {
     const pending = players.filter(
       player => player.registration_status === "pending"
@@ -204,9 +233,7 @@
     $("pending").innerHTML = pending.map(player => `
       <div class="panel">
         <b>${BANTY.esc(player.full_name)}</b> —
-        ${BANTY.esc(
-          teams.find(team => String(team.id) === String(player.team_id))?.name || "Team"
-        )}
+        ${BANTY.esc(teamName(player.team_id))}
         ${player.jersey_number == null ? "" : `(#${player.jersey_number})`}
         <div class="row-actions">
           <button class="button" data-approve="${player.id}">Approve</button>
@@ -222,6 +249,20 @@
     $("pending").querySelectorAll("[data-reject]").forEach(button => {
       button.onclick = () => setStatus(button.dataset.reject, "rejected");
     });
+  }
+
+  async function setStatus(id, status) {
+    const { error } = await client
+      .from("players")
+      .update({ registration_status: status })
+      .eq("id", id);
+
+    if (error) {
+      msg(error.message, true);
+    } else {
+      msg("Player status updated.");
+      await refresh();
+    }
   }
 
   // GROUP DRAW MANAGER
@@ -425,8 +466,6 @@
     }
   }
 
-  // CLEAR ALL GROUP ASSIGNMENTS
-
   async function clearAllGroups() {
     if (drawAssignments.length === 0) {
       msg("There are no group assignments to clear.", true);
@@ -448,7 +487,6 @@
     }
 
     try {
-      // Unpublish first so the public website cannot show the old draw.
       const { error: settingsError } = await client
         .from("tournament_draw_settings")
         .update({
@@ -459,7 +497,6 @@
 
       if (settingsError) throw settingsError;
 
-      // Delete only group assignments. This does not delete teams.
       const { error: deleteError } = await client
         .from("tournament_group_assignments")
         .delete()
@@ -543,9 +580,204 @@
     }
   }
 
+  // MAN OF THE MATCH
+
+  function updateMotmPlayers() {
+    const matchSelect = $("motmMatch");
+    const playerSelect = $("motmPlayer");
+    const saveButton = $("saveMotm");
+    const currentBox = $("motmCurrent");
+
+    if (!matchSelect || !playerSelect || !saveButton) return;
+
+    const matchId = matchSelect.value;
+    const match = matches.find(
+      item => String(item.id) === String(matchId)
+    );
+
+    playerSelect.innerHTML = "";
+    saveButton.disabled = true;
+
+    if (!match) {
+      playerSelect.innerHTML =
+        '<option value="">Select a fixture first</option>';
+      playerSelect.disabled = true;
+
+      if (currentBox) currentBox.hidden = true;
+      return;
+    }
+
+    const participatingTeamIds = [
+      String(match.home_team_id),
+      String(match.away_team_id)
+    ];
+
+    const eligiblePlayers = players.filter(player =>
+      player.registration_status === "approved" &&
+      participatingTeamIds.includes(String(player.team_id))
+    );
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = eligiblePlayers.length
+      ? "Choose the Man of the Match"
+      : "No approved players registered for these teams";
+
+    playerSelect.appendChild(placeholder);
+
+    eligiblePlayers.forEach(player => {
+      const option = document.createElement("option");
+      option.value = player.id;
+      option.textContent =
+        `${player.full_name} — ${teamName(player.team_id)}`;
+      playerSelect.appendChild(option);
+    });
+
+    playerSelect.disabled = eligiblePlayers.length === 0;
+    saveButton.disabled = eligiblePlayers.length === 0;
+
+    const existingAward = motmAwards.find(
+      award => String(award.match_id) === String(match.id)
+    );
+
+    if (existingAward) {
+      const awardedPlayer = players.find(
+        player => String(player.id) === String(existingAward.player_id)
+      );
+
+      if (currentBox) {
+        currentBox.hidden = false;
+        currentBox.textContent = awardedPlayer
+          ? `Current Man of the Match: ${awardedPlayer.full_name} (${teamName(awardedPlayer.team_id)}). You can select another player to replace this award.`
+          : "An award is already saved for this fixture. The player may no longer be available.";
+      }
+
+      if (
+        awardedPlayer &&
+        awardedPlayer.registration_status === "approved" &&
+        participatingTeamIds.includes(String(awardedPlayer.team_id))
+      ) {
+        playerSelect.value = String(awardedPlayer.id);
+      }
+    } else if (currentBox) {
+      currentBox.hidden = true;
+    }
+  }
+
+  async function saveManOfTheMatch(event) {
+    event.preventDefault();
+
+    try {
+      const matchId = $("motmMatch").value;
+      const playerId = $("motmPlayer").value;
+
+      if (!matchId || !playerId) {
+        throw new Error("Select a fixture and a Man of the Match player.");
+      }
+
+      const match = matches.find(
+        item => String(item.id) === String(matchId)
+      );
+
+      const player = players.find(
+        item => String(item.id) === String(playerId)
+      );
+
+      if (!match || !player) {
+        throw new Error("The selected fixture or player could not be found.");
+      }
+
+      const belongsToMatch =
+        String(player.team_id) === String(match.home_team_id) ||
+        String(player.team_id) === String(match.away_team_id);
+
+      if (
+        player.registration_status !== "approved" ||
+        !belongsToMatch
+      ) {
+        throw new Error(
+          "Choose an approved player from one of the two teams in this fixture."
+        );
+      }
+
+      const button = $("saveMotm");
+      button.disabled = true;
+      button.textContent = "Saving award...";
+
+      const { error } = await client
+        .from("match_man_of_the_match")
+        .upsert(
+          {
+            match_id: Number(matchId),
+            player_id: playerId
+          },
+          { onConflict: "match_id" }
+        );
+
+      if (error) throw error;
+
+      msg(`Man of the Match saved for ${matchLabel(match)}.`);
+      await refresh();
+    } catch (error) {
+      msg(error.message || "Could not save the Man of the Match award.", true);
+    } finally {
+      const button = $("saveMotm");
+      if (button) {
+        button.textContent = "Save Man of the Match";
+        updateMotmPlayers();
+      }
+    }
+  }
+
+  function renderMotmAwards() {
+    const container = $("motmAwards");
+    if (!container) return;
+
+    if (!motmAwards.length) {
+      container.innerHTML =
+        '<p class="muted">No Man of the Match awards have been recorded yet.</p>';
+      return;
+    }
+
+    const sortedAwards = [...motmAwards].sort((a, b) => {
+      const aMatch = matches.find(
+        match => String(match.id) === String(a.match_id)
+      );
+      const bMatch = matches.find(
+        match => String(match.id) === String(b.match_id)
+      );
+
+      return new Date(bMatch?.kickoff || 0) -
+        new Date(aMatch?.kickoff || 0);
+    });
+
+    container.innerHTML = `
+      <h3>Recorded Man of the Match Awards</h3>
+      ${sortedAwards.map(award => {
+        const match = matches.find(
+          item => String(item.id) === String(award.match_id)
+        );
+
+        const player = players.find(
+          item => String(item.id) === String(award.player_id)
+        );
+
+        return `
+          <div class="panel">
+            <b>${BANTY.esc(match ? matchLabel(match) : "Unknown fixture")}</b>
+            <p>
+              ${BANTY.esc(player?.full_name || "Unknown player")}
+              — ${BANTY.esc(player ? teamName(player.team_id) : "")}
+            </p>
+          </div>
+        `;
+      }).join("")}
+    `;
+  }
+
   // TEAM DELETION
 
-  function confirmDeleteTeam(teamName) {
+  function confirmDeleteTeam(teamNameValue) {
     return new Promise(resolve => {
       const dialog = document.createElement("dialog");
 
@@ -563,7 +795,7 @@
         </div>
       `;
 
-      dialog.querySelector("strong").textContent = teamName;
+      dialog.querySelector("strong").textContent = teamNameValue;
 
       const finish = value => {
         if (dialog.open) dialog.close();
@@ -588,8 +820,8 @@
     });
   }
 
-  async function deleteTeam(teamId, teamName) {
-    const confirmed = await confirmDeleteTeam(teamName);
+  async function deleteTeam(teamId, teamNameValue) {
+    const confirmed = await confirmDeleteTeam(teamNameValue);
     if (!confirmed) return;
 
     const button = $("teamLinks").querySelector(
@@ -613,25 +845,11 @@
         )
       );
 
-      msg(`Team "${typeof data === "string" ? data : teamName}" was deleted successfully.`);
+      msg(`Team "${typeof data === "string" ? data : teamNameValue}" was deleted successfully.`);
       await refresh();
     } catch (error) {
       msg(error.message || "Could not delete this team.", true);
       if (button) button.disabled = false;
-    }
-  }
-
-  async function setStatus(id, status) {
-    const { error } = await client
-      .from("players")
-      .update({ registration_status: status })
-      .eq("id", id);
-
-    if (error) {
-      msg(error.message, true);
-    } else {
-      msg("Player status updated.");
-      await refresh();
     }
   }
 
@@ -821,6 +1039,16 @@
       msg(error.message, true);
     }
   });
+
+  // MAN OF THE MATCH FORM EVENTS
+
+  if ($("motmMatch")) {
+    $("motmMatch").addEventListener("change", updateMotmPlayers);
+  }
+
+  if ($("motmForm")) {
+    $("motmForm").addEventListener("submit", saveManOfTheMatch);
+  }
 
   // GROUP DRAW BUTTONS
 
