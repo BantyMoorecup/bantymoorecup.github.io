@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -61,7 +62,6 @@
       <div id="pending"></div>
     </div>
 
-    <!-- GROUP DRAW MANAGER -->
     <div class="panel" id="drawManager">
       <h2>Group Draw Manager</h2>
 
@@ -117,6 +117,20 @@
         Use the forms below to create fixtures and record match events.
         Only approved players can be selected.
       </p>
+
+      <!-- FIXTURES MANAGEMENT -->
+      <hr>
+      <h3>Fixtures Management</h3>
+      <p class="muted">
+        All tournament fixtures appear here. You can review match details
+        and remove an incorrect fixture.
+      </p>
+
+      <div id="fixturesManagement" aria-live="polite">
+        <p class="muted">Loading fixtures...</p>
+      </div>
+
+      <hr>
 
       <form id="matchForm">
         <h3>Create fixture</h3>
@@ -185,7 +199,6 @@
 
       <hr>
 
-      <!-- MAN OF THE MATCH -->
       <form id="motmForm">
         <h3>Man of the Match</h3>
 
