@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -112,7 +111,7 @@
     </div>
 
     <div class="panel">
-      <h2>Fixtures, results, goals and cards</h2>
+      <h2>Fixtures, results, goals, cards and awards</h2>
 
       <p class="muted">
         Use the forms below to create fixtures and record match events.
@@ -183,6 +182,36 @@
 
         <button class="button" type="submit">Record event</button>
       </form>
+
+      <hr>
+
+      <!-- MAN OF THE MATCH -->
+      <form id="motmForm">
+        <h3>Man of the Match</h3>
+
+        <p class="muted">
+          Select a fixture, then choose the approved player from either
+          participating team. You can replace the award if necessary.
+        </p>
+
+        <label for="motmMatch">Fixture</label>
+        <select id="motmMatch" required>
+          <option value="">Select a fixture</option>
+        </select>
+
+        <div id="motmCurrent" class="notice" hidden></div>
+
+        <label for="motmPlayer">Man of the Match player</label>
+        <select id="motmPlayer" required disabled>
+          <option value="">Select a fixture first</option>
+        </select>
+
+        <button class="button" id="saveMotm" type="submit" disabled>
+          Save Man of the Match
+        </button>
+      </form>
+
+      <div id="motmAwards" style="margin-top:20px"></div>
     </div>
 
   </div>
