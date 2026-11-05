@@ -1,4 +1,3 @@
-
 (function () {
   const $ = id => document.getElementById(id);
   const notice = $("notice");
@@ -170,7 +169,6 @@
     try {
       const id = Number(matchId);
 
-      // Remove related records before deleting the fixture.
       const relatedTables = [
         "goals",
         "cards",
@@ -375,24 +373,51 @@
     });
   }
 
-  // PLAYER APPROVALS
+  // PLAYER APPROVALS AND APPROVED PLAYER REMOVAL
 
   function renderPendingPlayers() {
     const pending = players.filter(
       player => player.registration_status === "pending"
     );
 
-    $("pending").innerHTML = pending.map(player => `
-      <div class="panel">
-        <b>${BANTY.esc(player.full_name)}</b> —
-        ${BANTY.esc(teamName(player.team_id))}
-        ${player.jersey_number == null ? "" : `(#${player.jersey_number})`}
-        <div class="row-actions">
-          <button class="button" data-approve="${player.id}">Approve</button>
-          <button class="button danger" data-reject="${player.id}">Reject</button>
+    const approved = players.filter(
+      player => player.registration_status === "approved"
+    );
+
+    $("pending").innerHTML = `
+      <h3>Pending Registrations (${pending.length})</h3>
+
+      ${pending.map(player => `
+        <div class="panel">
+          <b>${BANTY.esc(player.full_name)}</b> —
+          ${BANTY.esc(teamName(player.team_id))}
+          ${player.jersey_number == null ? "" : `(#${player.jersey_number})`}
+          <div class="row-actions">
+            <button class="button" data-approve="${player.id}">Approve</button>
+            <button class="button danger" data-reject="${player.id}">Reject</button>
+          </div>
         </div>
-      </div>
-    `).join("") || '<p class="muted">No pending registrations.</p>';
+      `).join("") || '<p class="muted">No pending registrations.</p>'}
+
+      <h3 style="margin-top:25px">Approved Players (${approved.length})</h3>
+
+      ${approved.map(player => `
+        <div class="panel">
+          <b>${BANTY.esc(player.full_name)}</b> —
+          ${BANTY.esc(teamName(player.team_id))}
+          ${player.jersey_number == null ? "" : `(#${player.jersey_number})`}
+
+          <div class="row-actions">
+            <button
+              class="button danger"
+              type="button"
+              data-remove-player="${player.id}">
+              Remove Player
+            </button>
+          </div>
+        </div>
+      `).join("") || '<p class="muted">No approved players.</p>'}
+    `;
 
     $("pending").querySelectorAll("[data-approve]").forEach(button => {
       button.onclick = () => setStatus(button.dataset.approve, "approved");
@@ -400,6 +425,10 @@
 
     $("pending").querySelectorAll("[data-reject]").forEach(button => {
       button.onclick = () => setStatus(button.dataset.reject, "rejected");
+    });
+
+    $("pending").querySelectorAll("[data-remove-player]").forEach(button => {
+      button.onclick = () => removeApprovedPlayer(button.dataset.removePlayer);
     });
   }
 
@@ -414,6 +443,72 @@
     } else {
       msg("Player status updated.");
       await refresh();
+    }
+  }
+
+  async function removeApprovedPlayer(playerId) {
+    const player = players.find(
+      item => String(item.id) === String(playerId)
+    );
+
+    if (!player) {
+      msg("Player could not be found. Refresh and try again.", true);
+      return;
+    }
+
+    const confirmed = confirm(
+      `Remove ${player.full_name} from ${teamName(player.team_id)}?\n\n` +
+      "This permanently deletes the player's registration and frees a space for the manager to register another player.\n\n" +
+      "This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    const button = $("pending").querySelector(
+      `[data-remove-player="${CSS.escape(String(playerId))}"]`
+    );
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Removing...";
+    }
+
+    try {
+      // Protect any existing match statistics.
+      for (const table of ["goals", "cards"]) {
+        const { data, error } = await client
+          .from(table)
+          .select("player_id")
+          .eq("player_id", playerId)
+          .limit(1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          throw new Error(
+            "This player has recorded match events and cannot be removed safely."
+          );
+        }
+      }
+
+      const { error } = await client
+        .from("players")
+        .delete()
+        .eq("id", playerId)
+        .eq("registration_status", "approved");
+
+      if (error) throw error;
+
+      msg(`${player.full_name} has been removed. The team now has a space for another player.`);
+      await refresh();
+
+    } catch (error) {
+      msg(error.message || "Could not remove this player.", true);
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Remove Player";
+      }
     }
   }
 
