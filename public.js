@@ -1,4 +1,3 @@
-
 (function () {
   const $ = id => document.getElementById(id);
 
@@ -15,7 +14,6 @@
   const teamLink = (id, name) =>
     `<a href="team.html?id=${encodeURIComponent(id)}">${BANTY.esc(name)}</a>`;
 
-  // PLAYER PROFILE LINK
   const playerLink = (id, name) =>
     `<a class="player-profile-link"
         href="player.html?id=${encodeURIComponent(id)}">
@@ -24,7 +22,6 @@
 
   const kickoff = value => {
     if (!value) return "TBC";
-
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "TBC";
 
@@ -37,10 +34,8 @@
     );
   };
 
-  // Get match date in Nigeria local time.
   const dateKey = value => {
     if (!value) return "TBC";
-
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "TBC";
 
@@ -57,7 +52,6 @@
     return `${part("year")}-${part("month")}-${part("day")}`;
   };
 
-  // Format matchday heading.
   const dateHeading = value => {
     if (value === "TBC") return "DATE TO BE CONFIRMED";
 
@@ -73,6 +67,258 @@
     }).format(date).toUpperCase();
   };
 
+  // Convert match minutes such as 45+2 into sortable numbers.
+  function minuteValue(value) {
+    if (value == null || String(value).trim() === "") {
+      return Infinity;
+    }
+
+    const text = String(value).trim();
+    const parts = text.match(/^(\d+)(?:\+(\d+))?/);
+
+    if (!parts) return Infinity;
+
+    return Number(parts[1]) + Number(parts[2] || 0) / 100;
+  }
+
+  function displayMinute(value) {
+    if (value == null || String(value).trim() === "") {
+      return "Time not recorded";
+    }
+
+    return `${BANTY.esc(value)}'`;
+  }
+
+  function renderMatchDetails(match, teams, players, goals, cards, awards) {
+    const home = teams[match.home_team_id] || "TBD";
+    const away = teams[match.away_team_id] || "TBD";
+
+    const homeScore = match.home_score ?? "-";
+    const awayScore = match.away_score ?? "-";
+
+    const matchGoals = goals
+      .filter(event => String(event.match_id) === String(match.id))
+      .map(event => ({
+        type: "goal",
+        player_id: event.player_id,
+        minute: event.goal_time
+      }));
+
+    const matchCards = cards
+      .filter(event => String(event.match_id) === String(match.id))
+      .map(event => ({
+        type: event.card_type,
+        player_id: event.player_id,
+        minute: event.card_time
+      }));
+
+    // Combine goals and cards into one chronological timeline.
+    const events = [...matchGoals, ...matchCards].sort(
+      (a, b) => minuteValue(a.minute) - minuteValue(b.minute)
+    );
+
+    const award = awards.find(
+      item => String(item.match_id) === String(match.id)
+    );
+
+    const motm = award
+      ? players[award.player_id]
+      : null;
+
+    const timeline = events.length
+      ? events.map(event => {
+          const player = players[event.player_id];
+          const playerName = player?.full_name || "Unknown player";
+          const playerTeam = player
+            ? teams[player.team_id] || "Unknown team"
+            : "Unknown team";
+
+          let icon = "⚽";
+          let label = "GOAL";
+          let color = "#45c477";
+
+          if (event.type === "yellow") {
+            icon = "🟨";
+            label = "YELLOW CARD";
+            color = "#e9b84c";
+          } else if (event.type === "red") {
+            icon = "🟥";
+            label = "RED CARD";
+            color = "#ed6464";
+          }
+
+          return `
+            <div class="match-event">
+              <strong class="match-event-minute">
+                ${displayMinute(event.minute)}
+              </strong>
+
+              <span class="match-event-icon">${icon}</span>
+
+              <div class="match-event-player">
+                <strong>${BANTY.esc(playerName)}</strong>
+                <small>${BANTY.esc(label)} · ${BANTY.esc(playerTeam)}</small>
+              </div>
+
+              <span style="color:${color};font-weight:800">
+                ${BANTY.esc(label)}
+              </span>
+            </div>
+          `;
+        }).join("")
+      : empty("No goals or cards have been recorded for this match yet.");
+
+    return `
+      <div class="match-detail-card">
+
+        <div class="match-detail-score">
+          <div>
+            <strong>${BANTY.esc(home)}</strong>
+          </div>
+
+          <div class="match-detail-numbers">
+            ${BANTY.esc(homeScore)}
+            -
+            ${BANTY.esc(awayScore)}
+          </div>
+
+          <div>
+            <strong>${BANTY.esc(away)}</strong>
+          </div>
+        </div>
+
+        <p class="muted">
+          ${kickoff(match.kickoff)}
+          ·
+          ${BANTY.esc(match.venue || "Venue TBC")}
+        </p>
+
+        <h3>MATCH TIMELINE</h3>
+
+        <div class="match-timeline">
+          ${timeline}
+        </div>
+
+        <div class="match-motm">
+          <h3>⭐ MAN OF THE MATCH</h3>
+
+          ${
+            motm
+              ? `
+                <strong>${playerLink(motm.id, motm.full_name)}</strong>
+                <p class="muted">
+                  ${BANTY.esc(teams[motm.team_id] || "Unknown team")}
+                </p>
+              `
+              : empty("Man of the Match has not been announced yet.")
+          }
+        </div>
+
+      </div>
+    `;
+  }
+
+  // Add match-details styling without changing styles.css.
+  function addMatchStyles() {
+    if ($("match-details-styles")) return;
+
+    const style = document.createElement("style");
+    style.id = "match-details-styles";
+
+    style.textContent = `
+      .fixture-row {
+        cursor: default;
+      }
+
+      .fixture-details-button {
+        display: block;
+        width: 100%;
+        margin-top: 12px;
+        padding: 11px;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .match-detail-card {
+        background: #101b18;
+        border: 1px solid rgba(233,184,76,.3);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+      }
+
+      .match-detail-score {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 12px;
+        text-align: center;
+      }
+
+      .match-detail-score > div:first-child {
+        text-align: left;
+      }
+
+      .match-detail-score > div:last-child {
+        text-align: right;
+      }
+
+      .match-detail-numbers {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: #e9b84c;
+        white-space: nowrap;
+      }
+
+      .match-timeline {
+        margin-top: 12px;
+      }
+
+      .match-event {
+        display: grid;
+        grid-template-columns: 48px 30px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 13px 0;
+        border-bottom: 1px solid rgba(255,255,255,.1);
+      }
+
+      .match-event-minute {
+        color: #e9b84c;
+        white-space: nowrap;
+      }
+
+      .match-event-icon {
+        font-size: 1.25rem;
+      }
+
+      .match-event-player {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .match-event-player small {
+        color: #b8c9bd;
+      }
+
+      .match-event > span:last-child {
+        grid-column: 3;
+        font-size: .7rem;
+      }
+
+      .match-motm {
+        margin-top: 20px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255,255,255,.12);
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
   async function loadTournament() {
     try {
       const c = await BANTY.ready();
@@ -84,7 +330,8 @@
         { data: goals, error: ge },
         { data: cards, error: ce },
         { data: assignments, error: ae },
-        { data: drawSettings, error: de }
+        { data: drawSettings, error: de },
+        { data: awards, error: awe }
       ] = await Promise.all([
         c.from("teams").select("id,name").order("name"),
 
@@ -96,9 +343,11 @@
           .select("id,home_team_id,away_team_id,kickoff,venue,home_score,away_score,status")
           .order("kickoff"),
 
-        c.from("goals").select("player_id,match_id"),
+        c.from("goals")
+          .select("id,player_id,match_id,goal_time"),
 
-        c.from("cards").select("player_id,match_id,card_type"),
+        c.from("cards")
+          .select("id,player_id,match_id,card_type,card_time"),
 
         c.from("tournament_group_assignments")
           .select("team_id,group_name"),
@@ -106,12 +355,18 @@
         c.from("tournament_draw_settings")
           .select("is_published")
           .eq("id", true)
-          .maybeSingle()
+          .maybeSingle(),
+
+        c.from("match_man_of_the_match")
+          .select("match_id,player_id")
       ]);
 
-      if (te || pe || me || ge || ce || ae || de) {
+      if (te || pe || me || ge || ce || ae || de || awe) {
         throw new Error(
-          "Could not load tournament data. Check database setup and policies."
+          te?.message || pe?.message || me?.message ||
+          ge?.message || ce?.message || ae?.message ||
+          de?.message || awe?.message ||
+          "Could not load tournament data."
         );
       }
 
@@ -123,9 +378,7 @@
         (players || []).map(p => [p.id, p])
       );
 
-      // =====================================
-      // LEAGUE STANDINGS
-      // =====================================
+      // GROUP TABLES
 
       const standings = {};
 
@@ -133,13 +386,8 @@
         standings[t.id] = {
           id: t.id,
           name: t.name,
-          p: 0,
-          w: 0,
-          d: 0,
-          l: 0,
-          gf: 0,
-          ga: 0,
-          pts: 0
+          p: 0, w: 0, d: 0, l: 0,
+          gf: 0, ga: 0, pts: 0
         };
       });
 
@@ -160,7 +408,6 @@
 
           h.p++;
           a.p++;
-
           h.gf += hs;
           h.ga += as;
           a.gf += as;
@@ -190,15 +437,12 @@
           a.name.localeCompare(b.name)
       );
 
-      // =====================================
-      // GROUP TABLES
-      // =====================================
+      // GROUP ASSIGNMENTS
 
       const drawPublished = drawSettings?.is_published === true;
-      const groupAssignments = assignments || [];
 
       const teamGroup = Object.fromEntries(
-        groupAssignments.map(item => [
+        (assignments || []).map(item => [
           String(item.team_id),
           item.group_name
         ])
@@ -236,20 +480,16 @@
                 )}
               </section>
             `;
-          })
-          .join("");
+          }).join("");
       }
 
-      // =====================================
       // TOP SCORERS
-      // =====================================
 
       const counts = {};
 
       (goals || []).forEach(g => {
         if (pl[g.player_id]) {
-          counts[g.player_id] =
-            (counts[g.player_id] || 0) + 1;
+          counts[g.player_id] = (counts[g.player_id] || 0) + 1;
         }
       });
 
@@ -269,9 +509,7 @@
           `)
       );
 
-      // =====================================
-      // YELLOW AND RED CARDS
-      // =====================================
+      // CARD STATISTICS
 
       const cc = {};
 
@@ -281,11 +519,8 @@
         const id = card.player_id;
         cc[id] ??= { y: 0, r: 0 };
 
-        if (card.card_type === "yellow") {
-          cc[id].y++;
-        } else if (card.card_type === "red") {
-          cc[id].r++;
-        }
+        if (card.card_type === "yellow") cc[id].y++;
+        if (card.card_type === "red") cc[id].r++;
       });
 
       $("cards").innerHTML = table(
@@ -307,19 +542,15 @@
           `)
       );
 
-      // =====================================
-      // FIXTURES - GROUPED BY DATE
-      // =====================================
+      // CLICKABLE FIXTURES
+
+      addMatchStyles();
 
       const matchGroups = {};
 
       (matches || []).forEach(m => {
         const key = dateKey(m.kickoff);
-
-        if (!matchGroups[key]) {
-          matchGroups[key] = [];
-        }
-
+        if (!matchGroups[key]) matchGroups[key] = [];
         matchGroups[key].push(m);
       });
 
@@ -384,6 +615,15 @@
                         <span>${BANTY.esc(m.venue || "Venue TBC")}</span>
                       </div>
 
+                      <button
+                        type="button"
+                        class="fixture-details-button"
+                        data-view-match="${BANTY.esc(m.id)}">
+                        VIEW MATCH DETAILS
+                      </button>
+
+                      <div id="match-details-${BANTY.esc(m.id)}" hidden></div>
+
                     </article>
                   `;
                 }).join("")}
@@ -393,9 +633,36 @@
           `).join("")
         : empty("No fixtures have been published yet.");
 
-      // =====================================
+      // Open and close match details.
+      $("matches").querySelectorAll("[data-view-match]").forEach(button => {
+        button.addEventListener("click", () => {
+          const matchId = button.dataset.viewMatch;
+          const container = $(`match-details-${matchId}`);
+
+          if (!container) return;
+
+          if (!container.hidden) {
+            container.hidden = true;
+            button.textContent = "VIEW MATCH DETAILS";
+            return;
+          }
+
+          const match = (matches || []).find(
+            item => String(item.id) === String(matchId)
+          );
+
+          if (!match) return;
+
+          container.innerHTML = renderMatchDetails(
+            match, tm, pl, goals || [], cards || [], awards || []
+          );
+
+          container.hidden = false;
+          button.textContent = "HIDE MATCH DETAILS";
+        });
+      });
+
       // TEAMS AND APPROVED PLAYERS
-      // =====================================
 
       $("teams").innerHTML =
         (teams || []).map(t => `
