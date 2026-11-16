@@ -1,240 +1,127 @@
-
+```html
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin | Banty Moore Prestige Cup</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#28143f">
+
+  <title>Temporarily Unavailable | Banty Moore Prestige Cup</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+      background:
+        radial-gradient(circle at top right, #43205d, transparent 45%),
+        #170d22;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    .maintenance {
+      max-width: 550px;
+      padding: 40px 20px;
+    }
+
+    .logo {
+      width: 115px;
+      height: 115px;
+      object-fit: contain;
+      border-radius: 50%;
+      border: 2px solid #ff8a19;
+      margin-bottom: 25px;
+    }
+
+    .label {
+      color: #ff8a19;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 3px;
+    }
+
+    h1 {
+      font-size: clamp(30px, 7vw, 42px);
+      margin: 20px 0;
+    }
+
+    p {
+      color: #d4cbdc;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 11px 20px;
+      border: 1px solid rgba(255,138,25,.4);
+      border-radius: 30px;
+      color: #ff8a19;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 45px;
+      color: #92869d;
+      font-size: 12px;
+      line-height: 2;
+    }
+
+    footer strong {
+      color: #ff8a19;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="wrap">
-    <div class="brand">
-      <img src="banty-moore-logo.jpg" alt="Banty Moore logo">
-      <div class="brand-copy">
-        <h1>Tournament Admin</h1>
-        <p>Banty Moore Prestige Cup — authorized admin only</p>
-        <small>Official tournament control</small>
-      </div>
-    </div>
-    <nav>
-      <a href="index.html">Public website</a>
-    </nav>
-  </div>
-</header>
+  <div class="maintenance">
 
-<main>
-  <section class="panel">
-    <h2>Admin sign in</h2>
-    <div id="notice" class="notice" hidden></div>
+    <img
+      src="banty-moore-logo.jpg"
+      alt="Banty Moore Prestige Cup Logo"
+      class="logo"
+    >
 
-    <form id="login">
-      <label>Email</label>
-      <input id="email" type="email" required autocomplete="username">
+    <div class="label">BANTY MOORE PRESTIGE CUP 2026</div>
 
-      <label>Password</label>
-      <input id="password" type="password" required autocomplete="current-password">
+    <h1>We'll Be Back Soon.</h1>
 
-      <button class="button" type="submit">Sign in</button>
-    </form>
+    <p>
+      The tournament administration portal is temporarily
+      unavailable while we carry out some updates.
+    </p>
 
-    <button id="logout" class="button" hidden>Sign out</button>
-  </section>
+    <p>
+      Thank you for your patience.
+      Our administration services will return soon.
+    </p>
 
-  <div id="adminArea" hidden>
+    <div class="status">TEMPORARILY CLOSED</div>
 
-    <div class="panel">
-      <h2>Create team and manager link</h2>
-
-      <form id="teamForm">
-        <label>Team name</label>
-        <input id="teamName" required maxlength="100">
-        <button class="button" type="submit">Create team + registration link</button>
-      </form>
-
-      <div id="teamLinks"></div>
-    </div>
-
-    <div class="panel">
-      <h2>Player approvals</h2>
-      <div id="pending"></div>
-    </div>
-
-    <div class="panel" id="drawManager">
-      <h2>Group Draw Manager</h2>
-
-      <p class="muted">
-        Assign the 24 tournament teams into six groups.
-        Each group must contain exactly four teams.
-      </p>
-
-      <div id="drawNotice" class="notice" hidden></div>
-
-      <form id="drawForm">
-        <label for="drawTeam">Select team</label>
-        <select id="drawTeam" required>
-          <option value="">Loading teams...</option>
-        </select>
-
-        <label for="drawGroup">Select group</label>
-        <select id="drawGroup" required>
-          <option value="A">Group A</option>
-          <option value="B">Group B</option>
-          <option value="C">Group C</option>
-          <option value="D">Group D</option>
-          <option value="E">Group E</option>
-          <option value="F">Group F</option>
-        </select>
-
-        <button class="button" type="submit">
-          Save team assignment
-        </button>
-      </form>
-
-      <hr>
-
-      <div id="drawGroups"></div>
-
-      <p id="drawProgress" class="muted">
-        Loading group assignments...
-      </p>
-
-      <button id="publishDraw" class="button" type="button" disabled>
-        Publish draw
-      </button>
-
-      <button id="unpublishDraw" class="button danger" type="button" hidden>
-        Unpublish draw
-      </button>
-    </div>
-
-    <div class="panel">
-      <h2>Fixtures, results, goals, cards and awards</h2>
-
-      <p class="muted">
-        Use the forms below to create fixtures and record match events.
-        Only approved players can be selected.
-      </p>
-
-      <!-- FIXTURES MANAGEMENT -->
-      <hr>
-      <h3>Fixtures Management</h3>
-      <p class="muted">
-        All tournament fixtures appear here. You can review match details
-        and remove an incorrect fixture.
-      </p>
-
-      <div id="fixturesManagement" aria-live="polite">
-        <p class="muted">Loading fixtures...</p>
-      </div>
-
-      <hr>
-
-      <form id="matchForm">
-        <h3>Create fixture</h3>
-
-        <label>Home team</label>
-        <select id="homeTeam" required></select>
-
-        <label>Away team</label>
-        <select id="awayTeam" required></select>
-
-        <label>Kick-off date and time</label>
-        <input id="kickoff" type="datetime-local">
-
-        <label>Venue</label>
-        <input id="venue">
-
-        <button class="button" type="submit">Create fixture</button>
-      </form>
-
-      <hr>
-
-      <form id="resultForm">
-        <h3>Record result</h3>
-
-        <label>Match</label>
-        <select id="resultMatch" required></select>
-
-        <div class="grid">
-          <div>
-            <label>Home score</label>
-            <input id="homeScore" type="number" min="0" required>
-          </div>
-
-          <div>
-            <label>Away score</label>
-            <input id="awayScore" type="number" min="0" required>
-          </div>
-        </div>
-
-        <button class="button" type="submit">Save result</button>
-      </form>
-
-      <hr>
-
-      <form id="eventForm">
-        <h3>Add goal or card</h3>
-
-        <label>Match</label>
-        <select id="eventMatch" required></select>
-
-        <label>Approved player</label>
-        <select id="eventPlayer" required></select>
-
-        <label>Event</label>
-        <select id="eventType">
-          <option value="goal">Goal</option>
-          <option value="yellow">Yellow card</option>
-          <option value="red">Red card</option>
-        </select>
-
-        <label>Minute (optional)</label>
-        <input id="eventMinute" maxlength="20" placeholder="e.g. 67 or 45+2">
-
-        <button class="button" type="submit">Record event</button>
-      </form>
-
-      <hr>
-
-      <form id="motmForm">
-        <h3>Man of the Match</h3>
-
-        <p class="muted">
-          Select a fixture, then choose the approved player from either
-          participating team. You can replace the award if necessary.
-        </p>
-
-        <label for="motmMatch">Fixture</label>
-        <select id="motmMatch" required>
-          <option value="">Select a fixture</option>
-        </select>
-
-        <div id="motmCurrent" class="notice" hidden></div>
-
-        <label for="motmPlayer">Man of the Match player</label>
-        <select id="motmPlayer" required disabled>
-          <option value="">Select a fixture first</option>
-        </select>
-
-        <button class="button" id="saveMotm" type="submit" disabled>
-          Save Man of the Match
-        </button>
-      </form>
-
-      <div id="motmAwards" style="margin-top:20px"></div>
-    </div>
+    <footer>
+      <strong>PRESTIGE • PASSION • FOOTBALL</strong>
+      <br>
+      Website designed &amp; developed by Simi
+      <br>
+      +234 703 527 3500
+      <br>
+      gbenlesimi@gmail.com
+    </footer>
 
   </div>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js"></script>
-<script src="supabase-client.js"></script>
-<script src="shared.js"></script>
-<script src="admin.js"></script>
 
 </body>
 </html>
+```
